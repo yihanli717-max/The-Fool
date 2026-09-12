@@ -87,3 +87,26 @@ test("private choices must contain exactly three unique items", () => {
     /Duplicate item water/,
   );
 });
+
+test("only the host can restart after reveal", () => {
+  const { finalState } = runHappyPathHarness();
+
+  assert.throws(
+    () =>
+      applyAction(finalState, {
+        type: "game.restart",
+        actorPlayerId: "mei",
+      }),
+    DomainError,
+  );
+
+  const restarted = applyAction(finalState, {
+    type: "game.restart",
+    actorPlayerId: "alex",
+  });
+  assert.equal(restarted.phase, "lobby");
+  assert.deepEqual(restarted.privateSelections, {});
+  assert.deepEqual(restarted.peerPredictions, {});
+  assert.equal(restarted.groupSelection, null);
+  assert.equal(restarted.reveal, null);
+});

@@ -87,7 +87,7 @@ VS Code is the recommended editor, not the compiler. TypeScript is compiled by `
 ```text
 common-ground/
 ├── apps/
-│   ├── web/                 # React participant and organizer interface
+│   ├── web/                 # React participant interface
 │   └── server/              # Express and Socket.IO room server
 ├── packages/
 │   └── shared/              # Events, schemas, scenario types, and reveal logic
@@ -122,10 +122,20 @@ AI-generated wording may be added later, but the underlying result should remain
 
 ## Local Development
 
-Install dependencies, run the deterministic domain harness, and execute the checks:
+Install dependencies and start both the Socket.IO server and browser client:
 
 ```bash
 npm install
+npm run dev
+```
+
+Open `http://localhost:5173` in two to four browser tabs or phones. The local server runs on `http://localhost:3001` and exposes `GET /health`.
+
+Use a `.env` file based on [.env.example](.env.example) only when changing the default local ports or the browser-to-server URL.
+
+Run the deterministic domain harness and checks separately:
+
+```bash
 npm run harness
 npm test
 npm run typecheck
@@ -133,6 +143,8 @@ npm run build
 ```
 
 The harness design is documented in [docs/HARNESS_LOOP.md](docs/HARNESS_LOOP.md).
+
+Rooms are intentionally held in memory for the hackathon MVP. A browser refresh can resume an active room, but restarting the server expires all local rooms.
 
 ## Demo Story
 

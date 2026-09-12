@@ -105,6 +105,19 @@ export function applyAction(state: RoomState, action: RoomAction): RoomState {
       };
     }
 
+    case "player.connection.set": {
+      requirePlayer(state, action.actorPlayerId);
+      return {
+        ...state,
+        players: state.players.map((player) =>
+          player.id === action.actorPlayerId
+            ? { ...player, connected: action.connected }
+            : player,
+        ),
+        revision: nextRevision(state),
+      };
+    }
+
     case "game.start": {
       requirePhase(state, "lobby");
       requireHost(state, action.actorPlayerId);
@@ -114,6 +127,20 @@ export function applyAction(state: RoomState, action: RoomAction): RoomState {
       return {
         ...state,
         phase: "private-choice",
+        revision: nextRevision(state),
+      };
+    }
+
+    case "game.restart": {
+      requirePhase(state, "reveal");
+      requireHost(state, action.actorPlayerId);
+      return {
+        ...state,
+        phase: "lobby",
+        privateSelections: {},
+        groupSelection: null,
+        peerPredictions: {},
+        reveal: null,
         revision: nextRevision(state),
       };
     }

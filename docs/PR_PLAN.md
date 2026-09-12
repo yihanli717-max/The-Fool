@@ -19,7 +19,7 @@ Follow-up activity creation is a stretch feature and must not block the critical
 ## Recommended Development Setup
 
 - Visual Studio Code for editing and debugging
-- Node.js 22 or newer
+- Node.js 22.12 or newer
 - npm workspaces for dependency and script management
 - TypeScript in strict mode
 - React and Vite for the client
@@ -61,6 +61,8 @@ Deliver one complete Stranded Island session that works across two to four brows
 - one automated happy-path integration test if time permits
 
 The domain-first implementation begins with the deterministic harness described in [HARNESS_LOOP.md](HARNESS_LOOP.md). The realtime server and UI must reuse this engine rather than reimplementing game rules.
+
+The initial implementation keeps rooms in server memory. Browser refresh is supported through a session-scoped room token; server restart is intentionally treated as room expiration for the hackathon MVP.
 
 ### Non-goals
 

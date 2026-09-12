@@ -86,7 +86,13 @@ export type RoomState = {
 
 export type RoomAction =
   | { type: "player.join"; player: Player }
+  | {
+      type: "player.connection.set";
+      actorPlayerId: string;
+      connected: boolean;
+    }
   | { type: "game.start"; actorPlayerId: string }
+  | { type: "game.restart"; actorPlayerId: string }
   | {
       type: "private-choice.submit";
       actorPlayerId: string;
