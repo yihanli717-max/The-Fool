@@ -1,199 +1,376 @@
-# Common Ground
+# Shared Mind
 
-**Common Ground turns a room of strangers into a group with a next step.**
+**Shared Mind is a multiplayer conversation experience that helps people learn how they understand one another.**
 
-It is a realtime, browser-based experience for orientations, hackathon mixers,
-student events, and team retreats. An organizer sets the purpose of a small
-activity; participants share a few low-stakes interaction preferences; the
-group receives a privacy-safe conversation prompt; and, after talking, people
-can anonymously opt into a concrete follow-up.
+Players respond to short, everyday decision scenarios. Each scenario belongs
+to a Tarot card used as a narrative conversation domain, not as a diagnosis or
+a personality test. After discussing their choices, players predict how other
+people tend to approach a domain. The application then turns each prediction
+into a private, low-pressure opportunity to continue talking.
 
-> We do not decide who a person is from a profile. We help a group discover
-> what actually connects them.
+Shared Mind is designed for HackCMU's **Multiplayer** track. Its value comes
+from several people making choices in the same room, seeing one another's
+responses, discussing the reasons behind them, and testing whether a later
+prediction reflects real understanding.
 
-Common Ground is built for HackCMU's **Multiplayer** track. The multiplayer
-interaction is the product: the value emerges only when people in the same
-room respond, talk, reflect, and choose what to do next together.
+> Tarot gives the conversation a memorable language. It does not define who a
+> person is.
 
-## Product Thesis
+## Product thesis
 
-Most event tools optimize logistics: registration, calendars, rooms, and
-attendance. The harder problem starts after people arrive: how do strangers
-move from being placed near one another to forming a real connection?
-
-Common Ground addresses that transition with one short, facilitated loop:
+Many social experiences stop after people exchange names or answer a few
+icebreaker questions. Shared Mind creates a more meaningful loop:
 
 ```text
-MATCH -> CONNECT -> UNDERSTAND -> CONTINUE
+ANSWER TOGETHER -> DISCUSS -> PREDICT -> KEEP TALKING
 ```
 
-| Stage | Participant experience | Product purpose |
-| --- | --- | --- |
-| **MATCH** | Share a short, optional preference card and join a small group. | Give an organizer a starting point without reducing people to labels. |
-| **CONNECT** | Receive an anonymized shared theme and a tailored conversation starter. | Make the first interaction less awkward. |
-| **UNDERSTAND** | Lightly mark what the group actually clicked on after the conversation. | Separate predicted similarity from real connection. |
-| **CONTINUE** | Privately opt into a next activity; reveal it only when interest is mutual. | Close the intention-to-action gap. |
+The product is not trying to rank people or produce a psychological profile.
+It makes differences in interpretation visible, then gives the group a more
+natural next topic.
 
-The intended moment of delight is:
+## Target experience
 
-> We matched you because of anime. But you actually connected over game design.
+The MVP supports **2–10 participants** in one room:
 
-## The Hackathon MVP
+- one participant is the host;
+- all other participants join as members;
+- every participant receives a unique 2D pixel character;
+- no account or login is required;
+- the host controls when the group advances or revises a round.
 
-The MVP supports **one organizer and a single group of two to four
-participants**. It is deliberately focused on an end-to-end social loop, not a
-full event-management system.
+The room code is the entry point for the session. A participant enters a
+nickname, joins with the code, and receives a character that is not assigned
+to anyone else in that room. Characters and nicknames remain visible as the
+lightweight social map for the session.
 
-### 1. Create an activity — organizer
+## End-to-end flow
 
-The organizer creates a room and provides:
+### 1. Team up
 
-- activity name, such as *Hackathon Mixer* or *International Student Welcome*;
-- one event goal: meet people comfortably, discover new perspectives, or form
-  a small follow-up group;
-- a grouping mode:
-  - **Comfort** — prioritize obvious common ground;
-  - **Discovery** — surface a bridge between different interests;
-  - **Balanced** — include both familiarity and novelty.
+The host enters a nickname and creates a room. The server generates a room
+code and assigns the host a pixel character. Members enter their nicknames and
+the room code; the server assigns each member another unused character.
 
-The organizer receives a room code to share. In the MVP, a room represents one
-table; automatic grouping across a large attendee list is explicitly out of
-scope.
+The room can start only when at least two participants are present. The host
+is the only person who can start the activity or decide whether to run another
+round.
 
-### 2. Join and set the tone — participant
+### 2. Activity Stage 1: establish ground-truth choices
 
-Each participant joins with a display name and completes a short preference
-card. The card uses behavioral, event-specific prompts rather than MBTI,
-ethnicity, diagnoses, or personality claims:
+The server randomly selects four Tarot cards from the card catalog. Each card
+has an image, a title, and a general-meaning description stored in the card
+data.
 
-- interests they would be happy to discuss;
-- preferred interaction style: small-group conversation or a more structured
-  activity;
-- desired depth: meet many people or get to know a few people well;
-- what they hope to get from this event.
+For each selected card, the server asks the OpenAI API to generate one
+everyday event question with three choices that express different positions on
+that card's conversation domain. The generated event is shown in a two-column
+layout:
 
-All prompts are optional except a display name. The app stores only the
-choices needed for the current session.
+- **left:** Tarot image, card title, and general meaning;
+- **right:** event title, question, and three choices.
 
-### 3. Discover actual common ground — group
+Every participant makes exactly one choice. After everyone has answered that
+event, the room sees the participants' selected choices before moving to the
+next event. The group repeats this process for all four cards.
 
-Once at least two people have joined, Common Ground aggregates the group’s
-preferences without showing who selected what. It presents:
+The options have an internal domain score from 1 to 3. The score is not a
+personality score and is not shown as a judgment. It records the participant's
+position on the particular decision axis represented by that event. The order
+of the choices must not be treated as the score; each choice stores its own
+explicit score.
 
-- an **initial shared theme** (for example, *games and Japanese pop culture*);
-- one low-pressure conversation starter suited to the event goal and grouping
-  mode;
-- a short prompt that asks the group to mark the topic that genuinely created
-  energy or curiosity.
-
-The reveal makes the distinction clear:
+Example internal mapping:
 
 ```text
-Predicted common ground: Japanese pop culture
-Actual common ground: Creative game design
+The Fool — comfort with uncertainty
+1 = prefers preparation and familiar paths
+2 = balances preparation with exploration
+3 = welcomes experimentation despite uncertainty
 ```
 
-This protects participants from being locked into their questionnaire labels
-and supports perspective-taking without pretending to assess personality.
+The application stores the selected option and its domain score as the
+participant's ground truth for that Tarot event.
 
-### 4. Turn connection into action — group
+### 3. Conversation break
 
-At the end, each person can privately choose one optional follow-up, such as:
+After the four events, the application announces a **10-minute conversation
+break**. Participants discuss why they chose their answers offline or in the
+room. The application may show a neutral reminder such as:
 
-- coffee next week;
-- an indie game night;
-- a study or co-working session;
-- no follow-up today.
+> Take a few minutes to compare the situations that shaped your choices.
 
-Individual responses remain private. The room sees a follow-up only when at
-least two people choose the same option; otherwise the app simply thanks the
-group. This lowers the social friction of being the first person to ask.
+The application should not coach participants toward a supposedly correct
+interpretation. The purpose of this break is to let people explain themselves
+in their own words.
 
-## Why This Is Psychology-Informed
+### 4. Host-controlled revision rounds
 
-The experience draws on cognitive and developmental psychology without making
-clinical or trait-based claims.
+After the break, the host chooses whether to:
 
-- **Lower cognitive load:** the preference card is short, concrete, and
-  optional.
-- **Progressive disclosure:** people reflect individually before the group is
-  shown an aggregate theme.
-- **Perspective-taking:** the group compares an initial prediction with what
-  actually made the conversation meaningful.
-- **Agency and privacy:** participants choose what to share and whether to opt
-  into any continuation.
-- **Intention to action:** mutual, anonymous interest makes a next step easier
-  than an unstructured “we should hang out sometime.”
+1. run another ground-truth round with four fresh event questions based on the
+   Tarot domains already selected; or
+2. continue to the prediction stage.
 
-The experience is informed by the team’s perspective as Asian students
-navigating cross-cultural conversations. Culture is never inferred or treated
-as a fixed type; sharing a cultural perspective is always voluntary.
+A revision round keeps the social rhythm but changes the situation. It is not
+the same question repeated. If a Tarot appears in more than one round, the
+server keeps the latest relevant response for that Tarot when it prepares the
+prediction stage. The host can repeat this decision after each round.
 
-## Data and Privacy
+This gives the group a way to say, “let's explore this domain from another
+angle,” without forcing the session to run longer than the group wants.
 
-This project does **not** require a public dataset or a trained matching model.
-The MVP uses local fixtures for starter prompts and follow-up options, plus
-temporary choices created during the live session.
+### 5. Activity Stage 2: predict another participant
 
-- Room and preference data live only in server memory for the current demo.
-- No account, legal name, audio recording, transcript, ethnicity, MBTI, or
-  mental-health data is collected.
-- The organizer sees group-level themes, never a participant’s individual
-  preferences or follow-up choice.
-- Restarting the local server expires all rooms.
+The prediction stage shows each participant the other participants' pixel
+characters and nicknames. The characters occupy stable positions on the
+screen, with unused positions removed for smaller rooms.
 
-## Current Build Plan
+For each target participant:
 
-The repository initially contained a **Stranded Island** group-decision game.
-That was a useful realtime technical prototype, but it is not the final product
-described above. The implementation is being replaced in this order:
+1. the predictor clicks the target's character;
+2. a bottom dialog presents three Tarot-domain options using the card title and
+   general meaning;
+3. the predictor chooses the option that they believe best matches how the
+   target approaches the relevant kind of situation;
+4. the server records the prediction privately for that predictor-target-card
+   pair.
 
-1. Define the Common Ground product contract in this README.
-2. Replace the old game domain with event, preference-card, group-theme, and
-   mutual-follow-up types.
-3. Replace Socket.IO events and server transitions with the four-stage flow.
-4. Replace the browser screens with organizer and participant experiences.
-5. Add deterministic tests for anonymization, theme selection, and mutual
-   follow-up reveals.
-6. Run a two-to-four-person local and multi-device demo.
+Predictions are grouped by Tarot. If the same Tarot was explored in multiple
+rounds, the latest prediction is the one retained for the session result. The
+target's actual choice and domain score remain server-side evaluation data.
 
-The first phase is intentionally a single table of two to four participants.
-Large-event auto-grouping, QR generation, persistent accounts, calendar
-integration, catering, venue planning, and AI profiling are post-hackathon
-extensions.
+### 6. Continue the conversation
 
-## Technology
+After a prediction, the application compares the predicted domain position
+with the target participant's recorded ground-truth position.
 
-- **Editor:** Visual Studio Code
-- **Language:** TypeScript
-- **Frontend:** React with Vite
-- **Backend:** Node.js with Express
-- **Realtime transport:** Socket.IO
-- **Validation:** Zod
-- **Testing:** Node.js test runner with `tsx`
-- **Formatting and linting:** Prettier and ESLint
+#### If the prediction matches
+
+The participant receives a warm confirmation, for example:
+
+> You know them in this Tarot domain: you noticed a similar way of approaching uncertainty.
+
+This branch can lead to a simple positive follow-up message or another
+optional conversation direction.
+
+#### If the prediction does not match
+
+The mismatch is a **private routing signal**, not a result shown to the user.
+The interface must not say that the predictor was wrong, that they do not know
+the target, or that the target has a hidden score.
+
+The server calls the Tarot-domain conversation continuation generator. It uses
+the target's actual response internally and returns exactly three new ways to
+talk in the same broad domain:
+
+- **new situation:** a fresh, relatable situation;
+- **different angle:** another tradeoff, value, constraint, or perspective;
+- **future bridge:** a low-pressure imagined variation or possible next step.
+
+These directions should not ask, “Why did you choose the original answer?”
+They should not repeat the original event, expose the hidden comparison, or
+turn the conversation into an assessment. The goal is to help the pair keep
+talking about the domain from a new angle, so the interaction feels like
+discovery rather than correction.
+
+Example for a mismatch in **The Fool** domain:
+
+```text
+A smaller first step
+If you wanted to try something unfamiliar without changing your whole routine,
+what small version would feel worth trying?
+
+What is worth keeping
+When you make room for something new, what part of the familiar plan would you
+want to preserve?
+
+Making change easier
+What kind of support, information, or timing would make an unfamiliar choice
+feel more approachable?
+```
+
+The generated directions are sent only to the participant who requested that
+conversation branch. The target's answer, score, and the prediction result
+must never be included in the generated text or sent to the other participant.
+
+## Data model
+
+The MVP needs a small, explicit data model rather than a public dataset or a
+trained matching model.
+
+### Tarot card catalog
+
+The card catalog contains eight cards. Each card should provide:
+
+- stable `id`;
+- image asset or image URL;
+- display name;
+- general meaning text;
+- narrative archetype and themes;
+- a domain score axis with meanings for scores 1, 2, and 3.
+
+The card catalog describes conversation domains. It must not contain claims
+that a card reveals a participant's personality, culture, mental state, or
+future.
+
+### Generated event
+
+Each event belongs to one card and one activity round:
+
+```text
+eventId
+roundId
+cardId
+title
+question
+options: [{ id, text, score: 1 | 2 | 3 }]
+```
+
+The event generator must produce exactly three meaningful choices, with one
+explicit score per choice. Choices should represent a spectrum or meaningful
+tradeoff, not an obviously correct answer.
+
+### Ground truth response
+
+For each participant and event, the server records:
+
+```text
+participantId
+eventId
+cardId
+optionId
+score
+```
+
+This is session data. It is used to evaluate predictions and to guide a
+continuation prompt, not to construct a permanent user profile.
+
+### Prediction
+
+The server records predictions by predictor, target, and Tarot domain:
+
+```text
+predictorId
+targetParticipantId
+cardId
+predictedScore
+```
+
+If a Tarot is revisited, the latest prediction for that domain replaces the
+earlier one for the current session.
+
+### Conversation continuation
+
+The continuation generator returns a structured object with an opening and
+exactly three directions. The three directions have the modes
+`new-situation`, `different-angle`, and `future-bridge`.
+
+The generator receives the target's actual option and score only as private
+server-side context. The client receives only safe conversational copy.
+
+## AI and implementation boundaries
+
+There are two separate generation tasks:
+
+1. **Event generation:** create the four ground-truth scenarios for the
+   selected Tarot domains.
+2. **Conversation continuation:** after a private mismatch, create three new
+   directions in the same domain without revealing the mismatch.
+
+Both calls belong on the server. The browser must never receive
+`OPENAI_API_KEY`, the target's hidden answer, or the numeric comparison data.
+The integration should use structured JSON output and validate the response
+before showing it. If the API is unavailable, times out, refuses a request, or
+returns invalid data, the activity should use a safe static fallback and keep
+the multiplayer session moving.
+
+The current implementation plan intentionally treats the card catalog as
+static data and the event/continuation generation as replaceable services.
+The existing demo event fixture is not part of this README reset; its content
+should not constrain the new game flow.
+
+## Psychology-informed design
+
+The team combines developmental psychology, cognitive psychology, software
+implementation, and lived experience as Asian students navigating
+cross-cultural conversations.
+
+The psychology background informs interaction design rather than diagnosis:
+
+- **Lower cognitive load:** each event asks for one concrete decision;
+- **Progressive disclosure:** answer privately before the group reveal, then
+  discuss before predicting;
+- **Perspective-taking:** predict another person's approach after hearing the
+  reasons behind their choices;
+- **Agency:** participants may choose how much to explain and whether to follow
+  a generated direction;
+- **New-angle continuation:** a mismatch opens another topic instead of
+  labeling either person;
+- **Cultural humility:** cultural sharing is invited, never inferred or
+  treated as a fixed category.
+
+The application must not use ethnicity, nationality, MBTI, diagnoses, or
+family assumptions to determine a participant's behavior. An Asian identity
+can inform the team's motivation for building the experience, but it is never
+used as a prediction feature or a stereotype.
+
+## Privacy and safety
+
+- No login is required for the MVP.
+- Use nicknames and temporary room identifiers only.
+- Keep room state in server memory or another short-lived local store during
+  the demo.
+- Do not send names, contact details, or sensitive personal data to the model.
+- Do not store the target's hidden score in the browser.
+- Do not expose prediction correctness as a public score or leaderboard.
+- Treat Tarot as narrative framing, not fortune-telling or scientific
+  assessment.
+- Avoid medical, clinical, sexual, illegal, self-harm, and highly sensitive
+  prompts.
+- Make cultural examples optional and non-stereotyping.
+
+## Technology and repository
+
+The current repository uses a TypeScript monorepo:
+
+- **Frontend:** React and Vite;
+- **Backend:** Node.js, Express, and Socket.IO;
+- **Shared domain:** TypeScript types, deterministic rules, and validation;
+- **Testing:** Node.js test runner with `tsx`;
+- **Editor:** Visual Studio Code.
 
 ```text
 common-ground/
 ├── apps/
-│   ├── web/                 # Organizer and participant browser experience
-│   └── server/              # Express and Socket.IO room server
+│   ├── web/                  # Multiplayer browser experience
+│   └── server/               # Room state, rules, and AI calls
 ├── packages/
-│   └── shared/              # Domain types, matching, and privacy-safe reveal rules
-├── docs/
-│   ├── HARNESS_LOOP.md
-│   └── PR_PLAN.md
+│   └── shared/               # Shared domain types and deterministic logic
+├── docs/                     # Implementation plans and harness notes
 ├── README.md
 └── package.json
 ```
 
-## Run Locally
+The first implementation phase after this README review should replace the
+older activity-organizer flow with the Shared Mind room and Tarot round
+contract. Code changes should proceed in small, reviewable pull requests:
+
+1. define card, event, response, prediction, and continuation types;
+2. implement room creation, joining, unique character assignment, and host
+   controls;
+3. implement the four-card ground-truth rounds and group reveal;
+4. implement prediction storage and latest-by-Tarot behavior;
+5. add the private continuation branch with structured output and fallback;
+6. test the complete two-person and multi-person flow.
+
+## Run locally
 
 ### Prerequisites
 
-- Node.js 22.12 or newer
-- npm 10 or newer
-- Two to four browser tabs, phones, or browser windows for a multiplayer demo
+- Node.js 22.12 or newer;
+- npm 10 or newer;
+- two browser tabs, windows, or devices for a local multiplayer demo.
 
 ### Install and start
 
@@ -204,44 +381,18 @@ npm install
 npm run dev
 ```
 
-This starts both processes:
+This starts:
 
-- web client: `http://localhost:5173`
-- Socket.IO server: `http://localhost:3001`
+- web client: `http://localhost:5173`;
+- Socket.IO server: `http://localhost:3001`.
 
-Open `http://localhost:5173` in two to four browser tabs. Keep the terminal
-running; `Ctrl+C` stops both services. The current server state is in memory,
-so server restarts clear active rooms.
+Open the web client in two or more separate tabs. In the first tab, create a
+room as the host. In each other tab, use a different nickname and join with
+the room code. Each tab represents a separate participant connection.
 
-### Test with several local participants
-
-1. In tab one, enter a display name and create an activity room.
-2. Copy its room code.
-3. In every other tab, enter a **new display name** and that room code before
-   selecting **Join room**.
-4. Use an incognito window if a tab restores an old session.
-
-Each tab creates a separate realtime connection. A second participant must
-enter both a display name and a room code; the first tab’s name is not shared
-automatically.
-
-### Test from other devices with Tailscale
-
-Install and sign in to Tailscale on the host computer and every test device.
-On the host, find its Tailscale IPv4 address:
-
-```bash
-tailscale ip -4
-```
-
-With `npm run dev` running on the host, open
-`http://<tailscale-ip>:5173` from the other devices. The web client connects to
-the Socket.IO server on the same host at port `3001`.
-
-If a firewall blocks it, allow inbound TCP ports `5173` and `3001`. The
-development CORS configuration accepts Tailscale IPv4 addresses; for another
-hostname or proxy, add it to `CLIENT_ORIGIN` as a comma-separated origin in a
-local `.env` file based on [.env.example](.env.example).
+The current server state is temporary. Restarting the server clears active
+rooms. The implementation may add a short-lived local database later if the
+demo needs persistence, but user login is outside the MVP.
 
 ### Checks
 
@@ -252,7 +403,15 @@ npm run typecheck
 npm run build
 ```
 
+## Status
+
+This branch is the specification reset for the updated Shared Mind design.
+The README is intentionally being reviewed before implementation changes are
+made. The existing application code may still reflect an earlier prototype
+until the follow-up implementation PRs are completed.
+
 ## Team
 
-Built by a two-person HackCMU team combining product development, cognitive
-psychology, developmental psychology, and cross-cultural experience.
+Built by a two-person HackCMU team combining developmental and cognitive
+psychology, software implementation, and Asian cross-cultural lived
+experience.
