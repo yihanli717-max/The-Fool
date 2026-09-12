@@ -635,7 +635,7 @@ function Predictions({
     const arrivalTimer = window.setTimeout(() => {
       setTargetId(movingTargetId);
       setMovingTargetId("");
-    }, 950);
+    }, 1900);
     return () => window.clearTimeout(arrivalTimer);
   }, [movingTargetId]);
 

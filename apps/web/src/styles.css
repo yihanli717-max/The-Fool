@@ -367,11 +367,11 @@ button.player-avatar { cursor: pointer; }
   justify-items: center;
   transform: translateX(-50%);
   transition:
-    left .9s cubic-bezier(.42, 0, .24, 1),
-    top .9s cubic-bezier(.42, 0, .24, 1);
+    left 1.8s cubic-bezier(.42, 0, .24, 1),
+    top 1.8s cubic-bezier(.42, 0, .24, 1);
 }
 .viewer-character.walking img {
-  animation: walking-bob .22s steps(2, end) infinite alternate;
+  animation: walking-bob .44s steps(2, end) infinite alternate;
 }
 .viewer-character.arrived img {
   filter:
