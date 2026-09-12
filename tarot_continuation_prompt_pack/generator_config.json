@@ -1,0 +1,37 @@
+{
+  "name": "tarot_domain_conversation_continuation_generator",
+  "version": "1.0",
+  "system_prompt_file": "system_prompt.txt",
+  "user_prompt_template_file": "user_prompt_template.txt",
+  "json_schema_file": "tarot_continuation_output_schema.json",
+  "recommended_api": "OpenAI Responses API with Structured Outputs",
+  "recommended_generation_mode": "runtime_on_private_branch",
+  "output_count": 3,
+  "modes": [
+    "new-situation",
+    "different-angle",
+    "future-bridge"
+  ],
+  "private_inputs": [
+    "TARGET_ACTUAL_OPTION",
+    "TARGET_SCORE",
+    "PREDICTED_SCORE"
+  ],
+  "placeholders": {
+    "TAROT_CARD_NAME": "string",
+    "TAROT_ARCHETYPE": "string",
+    "TAROT_GENERAL_MEANING": "string",
+    "TAROT_CORE_QUESTION": "string",
+    "TAROT_THEMES_JSON": "JSON array of strings",
+    "SCORE_AXIS_JSON": "JSON object describing score meanings 1, 2, and 3",
+    "ORIGINAL_EVENT_TITLE": "string",
+    "ORIGINAL_EVENT_QUESTION": "string",
+    "ORIGINAL_OPTIONS_JSON": "JSON array of option objects",
+    "TARGET_ACTUAL_OPTION": "private string",
+    "TARGET_SCORE": "private integer 1-3",
+    "PREDICTED_SCORE": "private integer 1-3",
+    "USED_TOPICS_JSON": "JSON array of strings"
+  },
+  "fallback_required": true,
+  "fallback_behavior": "Use three prewritten domain-safe directions if the model is unavailable, refuses, times out, or fails schema validation."
+}

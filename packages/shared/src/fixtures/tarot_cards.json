@@ -1,0 +1,103 @@
+{
+  "project": "Shared Mind",
+  "version": "HackCMU MVP scenario library v1",
+  "note": "Tarot archetypes are narrative labels for decision situations, not personality diagnoses.",
+  "cards": [
+    {
+      "id": "fool",
+      "name": "The Fool",
+      "archetype": "New Beginnings / Leap",
+      "core_question": "Will I step into the unknown?",
+      "themes": [
+        "new beginnings",
+        "uncertainty",
+        "experimentation",
+        "leaving the familiar"
+      ]
+    },
+    {
+      "id": "magician",
+      "name": "The Magician",
+      "archetype": "Agency / Creation",
+      "core_question": "Can I make something happen with what I have?",
+      "themes": [
+        "initiative",
+        "resourcefulness",
+        "creation",
+        "problem-solving"
+      ]
+    },
+    {
+      "id": "lovers",
+      "name": "The Lovers",
+      "archetype": "Connection / Values",
+      "core_question": "Who or what matters most in this choice?",
+      "themes": [
+        "relationships",
+        "values",
+        "alignment",
+        "commitment"
+      ]
+    },
+    {
+      "id": "chariot",
+      "name": "The Chariot",
+      "archetype": "Drive / Determination",
+      "core_question": "How hard will I push toward the goal?",
+      "themes": [
+        "ambition",
+        "momentum",
+        "competition",
+        "persistence"
+      ]
+    },
+    {
+      "id": "strength",
+      "name": "Strength",
+      "archetype": "Courage / Self-Control",
+      "core_question": "How do I respond when emotion or pressure rises?",
+      "themes": [
+        "courage",
+        "patience",
+        "restraint",
+        "emotional regulation"
+      ]
+    },
+    {
+      "id": "hermit",
+      "name": "The Hermit",
+      "archetype": "Reflection / Independence",
+      "core_question": "Do I need space to think before I act?",
+      "themes": [
+        "reflection",
+        "independence",
+        "caution",
+        "inner judgment"
+      ]
+    },
+    {
+      "id": "death",
+      "name": "Death",
+      "archetype": "Transformation / Letting Go",
+      "core_question": "When is it time to end the old and change direction?",
+      "themes": [
+        "transition",
+        "letting go",
+        "reinvention",
+        "accepting change"
+      ]
+    },
+    {
+      "id": "star",
+      "name": "The Star",
+      "archetype": "Hope / Possibility",
+      "core_question": "Will I invest in a hopeful possibility?",
+      "themes": [
+        "hope",
+        "idealism",
+        "long-term vision",
+        "renewal"
+      ]
+    }
+  ]
+}

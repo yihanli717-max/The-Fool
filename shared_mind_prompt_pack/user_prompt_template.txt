@@ -1,0 +1,34 @@
+Generate additional content for the Shared Mind tarot scenario library.
+
+Requirements:
+
+Number of tarot archetypes to generate:
+{{NUMBER_OF_CARDS}}
+
+Learning trials per archetype:
+{{LEARNING_TRIALS_PER_CARD}}
+
+Test trials per archetype:
+{{TEST_TRIALS_PER_CARD}}
+
+Existing card ids that MUST NOT be reused:
+{{EXISTING_CARD_IDS}}
+
+Existing archetypes/themes that should not be duplicated too closely:
+{{EXISTING_ARCHETYPES}}
+
+Additional requirements:
+{{ADDITIONAL_REQUIREMENTS}}
+
+The new tarot archetypes should be meaningfully different from the existing ones.
+
+For each archetype:
+- provide a clear behavioral or decision-making interpretation;
+- provide a concise core question;
+- provide 3 to 5 themes;
+- create learning trials that help players observe another person's decision style;
+- create test trials that let players predict how that person will behave in a new but conceptually related situation.
+
+Make sure the final output follows the required JSON schema exactly.
+
+Return valid JSON only.

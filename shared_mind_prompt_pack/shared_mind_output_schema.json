@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shared Mind Generated Tarot Content",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "cards",
+    "trials"
+  ],
+  "properties": {
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "archetype",
+          "core_question",
+          "themes"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "archetype": {
+            "type": "string",
+            "minLength": 1
+          },
+          "core_question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "themes": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 5,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "trials": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "card_id",
+          "card_name",
+          "trial_type",
+          "title",
+          "question",
+          "options"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+_(learning|test)_[1-9][0-9]*$"
+          },
+          "card_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$"
+          },
+          "card_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trial_type": {
+            "type": "string",
+            "enum": [
+              "learning",
+              "test"
+            ]
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "question": {
+            "type": "string",
+            "minLength": 1
+          },
+          "options": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "prefixItems": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "text"
+                ],
+                "properties": {
+                  "id": {
+                    "const": "A"
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "text"
+                ],
+                "properties": {
+                  "id": {
+                    "const": "B"
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "text"
+                ],
+                "properties": {
+                  "id": {
+                    "const": "C"
+                  },
+                  "text": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            ],
+            "items": false
+          }
+        }
+      }
+    }
+  }
+}

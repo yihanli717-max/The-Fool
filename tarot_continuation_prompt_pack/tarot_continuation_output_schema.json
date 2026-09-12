@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tarot Domain Conversation Continuations",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["opening", "options"],
+  "properties": {
+    "opening": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "options": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "prefixItems": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "mode", "title", "prompt"],
+          "properties": {
+            "id": { "const": "A" },
+            "mode": { "const": "new-situation" },
+            "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "prompt": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "mode", "title", "prompt"],
+          "properties": {
+            "id": { "const": "B" },
+            "mode": { "const": "different-angle" },
+            "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "prompt": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "mode", "title", "prompt"],
+          "properties": {
+            "id": { "const": "C" },
+            "mode": { "const": "future-bridge" },
+            "title": { "type": "string", "minLength": 1, "maxLength": 80 },
+            "prompt": { "type": "string", "minLength": 1, "maxLength": 500 }
+          }
+        }
+      ],
+      "items": false
+    }
+  }
+}

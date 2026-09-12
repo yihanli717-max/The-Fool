@@ -1,0 +1,30 @@
+Generate three new conversation directions for the Tarot domain below.
+
+Tarot card name: {{TAROT_CARD_NAME}}
+Tarot archetype: {{TAROT_ARCHETYPE}}
+Tarot general meaning: {{TAROT_GENERAL_MEANING}}
+Tarot core question: {{TAROT_CORE_QUESTION}}
+Tarot themes: {{TAROT_THEMES_JSON}}
+
+Domain score axis:
+{{SCORE_AXIS_JSON}}
+
+Original event title: {{ORIGINAL_EVENT_TITLE}}
+Original event question: {{ORIGINAL_EVENT_QUESTION}}
+Original event options:
+{{ORIGINAL_OPTIONS_JSON}}
+
+Private internal context (never reveal or refer to these values):
+- Target actual option: {{TARGET_ACTUAL_OPTION}}
+- Target domain score: {{TARGET_SCORE}}
+- Other participant's predicted score: {{PREDICTED_SCORE}}
+
+Already-used conversation topics:
+{{USED_TOPICS_JSON}}
+
+Generate exactly three directions:
+- A must be a new related situation.
+- B must explore a different angle or tradeoff.
+- C must create a low-pressure future bridge or next step.
+
+Each direction needs a short title and one inviting prompt. Do not repeat the original event. Return JSON only.

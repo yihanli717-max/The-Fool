@@ -1,0 +1,809 @@
+{
+  "project": "Shared Mind",
+  "version": "HackCMU MVP scenario library v1",
+  "note": "Tarot archetypes are narrative labels for decision situations, not personality diagnoses.",
+  "cards": [
+    {
+      "id": "fool",
+      "name": "The Fool",
+      "archetype": "New Beginnings / Leap",
+      "core_question": "Will I step into the unknown?",
+      "themes": [
+        "new beginnings",
+        "uncertainty",
+        "experimentation",
+        "leaving the familiar"
+      ]
+    },
+    {
+      "id": "magician",
+      "name": "The Magician",
+      "archetype": "Agency / Creation",
+      "core_question": "Can I make something happen with what I have?",
+      "themes": [
+        "initiative",
+        "resourcefulness",
+        "creation",
+        "problem-solving"
+      ]
+    },
+    {
+      "id": "lovers",
+      "name": "The Lovers",
+      "archetype": "Connection / Values",
+      "core_question": "Who or what matters most in this choice?",
+      "themes": [
+        "relationships",
+        "values",
+        "alignment",
+        "commitment"
+      ]
+    },
+    {
+      "id": "chariot",
+      "name": "The Chariot",
+      "archetype": "Drive / Determination",
+      "core_question": "How hard will I push toward the goal?",
+      "themes": [
+        "ambition",
+        "momentum",
+        "competition",
+        "persistence"
+      ]
+    },
+    {
+      "id": "strength",
+      "name": "Strength",
+      "archetype": "Courage / Self-Control",
+      "core_question": "How do I respond when emotion or pressure rises?",
+      "themes": [
+        "courage",
+        "patience",
+        "restraint",
+        "emotional regulation"
+      ]
+    },
+    {
+      "id": "hermit",
+      "name": "The Hermit",
+      "archetype": "Reflection / Independence",
+      "core_question": "Do I need space to think before I act?",
+      "themes": [
+        "reflection",
+        "independence",
+        "caution",
+        "inner judgment"
+      ]
+    },
+    {
+      "id": "death",
+      "name": "Death",
+      "archetype": "Transformation / Letting Go",
+      "core_question": "When is it time to end the old and change direction?",
+      "themes": [
+        "transition",
+        "letting go",
+        "reinvention",
+        "accepting change"
+      ]
+    },
+    {
+      "id": "star",
+      "name": "The Star",
+      "archetype": "Hope / Possibility",
+      "core_question": "Will I invest in a hopeful possibility?",
+      "themes": [
+        "hope",
+        "idealism",
+        "long-term vision",
+        "renewal"
+      ]
+    }
+  ],
+  "trials": [
+    {
+      "id": "fool_learning_1",
+      "card_id": "fool",
+      "card_name": "The Fool",
+      "trial_type": "learning",
+      "title": "A New Hobby",
+      "question": "You have spent two years getting good at one hobby, but a completely unfamiliar hobby suddenly excites you much more. You only have enough free time to seriously pursue one. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Jump into the new hobby and accept being a beginner again."
+        },
+        {
+          "id": "B",
+          "text": "Keep the old hobby as your main focus while casually trying the new one."
+        },
+        {
+          "id": "C",
+          "text": "Stay with the hobby I already know and continue building mastery."
+        }
+      ]
+    },
+    {
+      "id": "fool_learning_2",
+      "card_id": "fool",
+      "card_name": "The Fool",
+      "trial_type": "learning",
+      "title": "A Different Path",
+      "question": "You planned your next semester carefully, but an unexpected course outside your field looks fascinating and would force you to change the plan. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Change the plan and take the unfamiliar course."
+        },
+        {
+          "id": "B",
+          "text": "Make a small adjustment so I can try the course without abandoning most of my plan."
+        },
+        {
+          "id": "C",
+          "text": "Keep the original plan because I already know it supports my goals."
+        }
+      ]
+    },
+    {
+      "id": "fool_test_1",
+      "card_id": "fool",
+      "card_name": "The Fool",
+      "trial_type": "test",
+      "title": "The Overseas Opportunity",
+      "question": "You receive a secure job offer, but also a six-month opportunity abroad doing something you have always wanted to try, with no guarantee of a job afterward. What would you choose?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Take the overseas opportunity and accept the uncertainty."
+        },
+        {
+          "id": "B",
+          "text": "Try to negotiate a way to keep the secure option while exploring the opportunity."
+        },
+        {
+          "id": "C",
+          "text": "Take the secure job and pursue adventurous opportunities later."
+        }
+      ]
+    },
+    {
+      "id": "fool_test_2",
+      "card_id": "fool",
+      "card_name": "The Fool",
+      "trial_type": "test",
+      "title": "The Blank-Slate Project",
+      "question": "A team offers you the choice between improving a successful existing product or joining a brand-new project with no users, no clear roadmap, and lots of freedom. What would you choose?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Join the brand-new project and help define it from scratch."
+        },
+        {
+          "id": "B",
+          "text": "Split my effort or test the new project before fully committing."
+        },
+        {
+          "id": "C",
+          "text": "Improve the successful product where the path is clearer."
+        }
+      ]
+    },
+    {
+      "id": "magician_learning_1",
+      "card_id": "magician",
+      "card_name": "The Magician",
+      "trial_type": "learning",
+      "title": "The Stuck Team",
+      "question": "Your group project is stuck and nobody knows what to do next. You have an untested idea and enough skills to build a quick prototype yourself. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Build a quick prototype immediately and show the team what is possible."
+        },
+        {
+          "id": "B",
+          "text": "Pitch the idea first and organize people around a small experiment."
+        },
+        {
+          "id": "C",
+          "text": "Wait until the team agrees on a clearer plan before building."
+        }
+      ]
+    },
+    {
+      "id": "magician_learning_2",
+      "card_id": "magician",
+      "card_name": "The Magician",
+      "trial_type": "learning",
+      "title": "Limited Resources",
+      "question": "You want to host a small event, but you have almost no budget. You do have a room, some borrowed equipment, and friends with different skills. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Combine whatever resources are available and create a workable version now."
+        },
+        {
+          "id": "B",
+          "text": "Design a smaller event around the resources I can reliably coordinate."
+        },
+        {
+          "id": "C",
+          "text": "Postpone the event until I have proper resources."
+        }
+      ]
+    },
+    {
+      "id": "magician_test_1",
+      "card_id": "magician",
+      "card_name": "The Magician",
+      "trial_type": "test",
+      "title": "Twenty Minutes to Fix It",
+      "question": "An event starts in twenty minutes and the main display system fails. You have spare laptops, cables, and several volunteers, but no official backup setup. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Improvise a replacement system from the available equipment."
+        },
+        {
+          "id": "B",
+          "text": "Assign people specific troubleshooting tasks and choose the best workable backup."
+        },
+        {
+          "id": "C",
+          "text": "Simplify the event so it can run without the display system."
+        }
+      ]
+    },
+    {
+      "id": "magician_test_2",
+      "card_id": "magician",
+      "card_name": "The Magician",
+      "trial_type": "test",
+      "title": "No One Owns the Problem",
+      "question": "A useful campus service is missing, and everyone complains about it, but no organization is responsible for fixing it. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Create a basic version myself and see whether people use it."
+        },
+        {
+          "id": "B",
+          "text": "Recruit a few people and organize a small pilot first."
+        },
+        {
+          "id": "C",
+          "text": "Raise the issue with an existing organization and wait for institutional support."
+        }
+      ]
+    },
+    {
+      "id": "lovers_learning_1",
+      "card_id": "lovers",
+      "card_name": "The Lovers",
+      "trial_type": "learning",
+      "title": "The Team You Love",
+      "question": "You receive a great opportunity that fits your goals, but accepting it means leaving a team you genuinely enjoy working with. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Take the opportunity because it fits my personal direction."
+        },
+        {
+          "id": "B",
+          "text": "Look for a compromise that preserves the relationship while pursuing the opportunity."
+        },
+        {
+          "id": "C",
+          "text": "Stay with the team because the people I work with matter more right now."
+        }
+      ]
+    },
+    {
+      "id": "lovers_learning_2",
+      "card_id": "lovers",
+      "card_name": "The Lovers",
+      "trial_type": "learning",
+      "title": "Values vs Convenience",
+      "question": "Your group can choose a convenient vendor with questionable labor practices or a more expensive vendor whose practices match the group's stated values. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Choose the values-aligned vendor even if it costs more."
+        },
+        {
+          "id": "B",
+          "text": "Look for a compromise or gather more information before deciding."
+        },
+        {
+          "id": "C",
+          "text": "Choose the convenient vendor because completing the project is the immediate priority."
+        }
+      ]
+    },
+    {
+      "id": "lovers_test_1",
+      "card_id": "lovers",
+      "card_name": "The Lovers",
+      "trial_type": "test",
+      "title": "Friends in Conflict",
+      "question": "Two close friends have a serious disagreement, and both privately ask you to support their side. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Support the person whose position best matches my own values."
+        },
+        {
+          "id": "B",
+          "text": "Try to understand both sides and help them communicate without choosing a side immediately."
+        },
+        {
+          "id": "C",
+          "text": "Prioritize loyalty to the friend I feel closest to."
+        }
+      ]
+    },
+    {
+      "id": "lovers_test_2",
+      "card_id": "lovers",
+      "card_name": "The Lovers",
+      "trial_type": "test",
+      "title": "Dream Role, Different City",
+      "question": "You are offered a dream role in another city while someone very important to you cannot realistically move. What would you choose?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Take the role and accept that the relationship will have to adapt."
+        },
+        {
+          "id": "B",
+          "text": "Search for a middle path, such as delaying, commuting, or renegotiating the role."
+        },
+        {
+          "id": "C",
+          "text": "Turn down the role to protect the relationship and shared life."
+        }
+      ]
+    },
+    {
+      "id": "chariot_learning_1",
+      "card_id": "chariot",
+      "card_name": "The Chariot",
+      "trial_type": "learning",
+      "title": "Twelve Hours Left",
+      "question": "Your hackathon prototype works, but it is mediocre. With twelve hours left, a risky feature could make it much more impressive or break the current version. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Push hard for the risky feature and aim for a stronger final product."
+        },
+        {
+          "id": "B",
+          "text": "Improve the existing version aggressively without risking the core functionality."
+        },
+        {
+          "id": "C",
+          "text": "Freeze development and focus on polishing the demo and presentation."
+        }
+      ]
+    },
+    {
+      "id": "chariot_learning_2",
+      "card_id": "chariot",
+      "card_name": "The Chariot",
+      "trial_type": "learning",
+      "title": "Behind in the Race",
+      "question": "You are behind your personal goal halfway through a month-long challenge. Catching up would require a much more intense schedule. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Increase the pace and push until I am back on target."
+        },
+        {
+          "id": "B",
+          "text": "Adjust the goal but keep steady forward momentum."
+        },
+        {
+          "id": "C",
+          "text": "Accept the missed target and continue at a sustainable pace."
+        }
+      ]
+    },
+    {
+      "id": "chariot_test_1",
+      "card_id": "chariot",
+      "card_name": "The Chariot",
+      "trial_type": "test",
+      "title": "Second Place",
+      "question": "You are in second place near the end of a competition. A high-risk strategy could move you into first but could also drop you far down the ranking. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Take the risk and go for first place."
+        },
+        {
+          "id": "B",
+          "text": "Use a moderately aggressive strategy that still protects my position."
+        },
+        {
+          "id": "C",
+          "text": "Play safely and secure the strong finish I already have."
+        }
+      ]
+    },
+    {
+      "id": "chariot_test_2",
+      "card_id": "chariot",
+      "card_name": "The Chariot",
+      "trial_type": "test",
+      "title": "One More Push",
+      "question": "Your team has worked for weeks and is exhausted. A major opportunity appears, but meeting it requires one final intense weekend of work. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Rally the team and push hard for the opportunity."
+        },
+        {
+          "id": "B",
+          "text": "Pursue the opportunity only if the team can divide the work sustainably."
+        },
+        {
+          "id": "C",
+          "text": "Protect the team's energy and let this opportunity pass."
+        }
+      ]
+    },
+    {
+      "id": "strength_learning_1",
+      "card_id": "strength",
+      "card_name": "Strength",
+      "trial_type": "learning",
+      "title": "Your Idea Is Challenged",
+      "question": "During a group discussion, someone strongly criticizes your idea and you believe they misunderstood it. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Respond directly and firmly so my reasoning is not dismissed."
+        },
+        {
+          "id": "B",
+          "text": "Stay calm, clarify the misunderstanding, and ask what concerns them most."
+        },
+        {
+          "id": "C",
+          "text": "Pause the debate and return to it after everyone has had time to cool down."
+        }
+      ]
+    },
+    {
+      "id": "strength_learning_2",
+      "card_id": "strength",
+      "card_name": "Strength",
+      "trial_type": "learning",
+      "title": "Fear Before the Stage",
+      "question": "You are about to present to a large audience and feel intensely nervous. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Step on stage and use the nervous energy to push through."
+        },
+        {
+          "id": "B",
+          "text": "Slow myself down with a short routine and then present."
+        },
+        {
+          "id": "C",
+          "text": "Ask to reduce my role or let someone else take the most exposed part."
+        }
+      ]
+    },
+    {
+      "id": "strength_test_1",
+      "card_id": "strength",
+      "card_name": "Strength",
+      "trial_type": "test",
+      "title": "A Hurtful Comment",
+      "question": "A friend says something in front of others that makes you uncomfortable, but you are not sure they intended to hurt you. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Address it immediately and clearly in the moment."
+        },
+        {
+          "id": "B",
+          "text": "Stay composed, then talk to them privately and explain how it felt."
+        },
+        {
+          "id": "C",
+          "text": "Let it go for now unless it happens again."
+        }
+      ]
+    },
+    {
+      "id": "strength_test_2",
+      "card_id": "strength",
+      "card_name": "Strength",
+      "trial_type": "test",
+      "title": "Provoked Online",
+      "question": "Someone publicly posts a harsh and inaccurate criticism of work you care about. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Respond publicly and defend the work point by point."
+        },
+        {
+          "id": "B",
+          "text": "Write a measured response that corrects the important facts without escalating the tone."
+        },
+        {
+          "id": "C",
+          "text": "Avoid engaging publicly and focus on people who are willing to discuss it constructively."
+        }
+      ]
+    },
+    {
+      "id": "hermit_learning_1",
+      "card_id": "hermit",
+      "card_name": "The Hermit",
+      "trial_type": "learning",
+      "title": "Everyone Already Agrees",
+      "question": "Everyone in your group is excited about a decision, but you still feel uncertain and have not fully thought it through. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Join the group decision and learn from what happens."
+        },
+        {
+          "id": "B",
+          "text": "Ask a few questions, then decide with the group if my major concerns are addressed."
+        },
+        {
+          "id": "C",
+          "text": "Ask for time to think independently before committing."
+        }
+      ]
+    },
+    {
+      "id": "hermit_learning_2",
+      "card_id": "hermit",
+      "card_name": "The Hermit",
+      "trial_type": "learning",
+      "title": "Too Much Advice",
+      "question": "You have a difficult personal decision and five friends are giving you conflicting advice. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Choose the advice that feels most convincing and act."
+        },
+        {
+          "id": "B",
+          "text": "Talk through the advice with one or two people I trust most."
+        },
+        {
+          "id": "C",
+          "text": "Step away from everyone's opinions for a while and decide privately."
+        }
+      ]
+    },
+    {
+      "id": "hermit_test_1",
+      "card_id": "hermit",
+      "card_name": "The Hermit",
+      "trial_type": "test",
+      "title": "Three Days to Decide",
+      "question": "You receive an important offer. Your friends all say to accept immediately, but the deadline is still three days away. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Accept now because the opportunity is strong and trusted people agree."
+        },
+        {
+          "id": "B",
+          "text": "Use the remaining time to ask targeted questions before deciding."
+        },
+        {
+          "id": "C",
+          "text": "Spend time alone evaluating the decision before giving anyone an answer."
+        }
+      ]
+    },
+    {
+      "id": "hermit_test_2",
+      "card_id": "hermit",
+      "card_name": "The Hermit",
+      "trial_type": "test",
+      "title": "The Fast-Moving Group",
+      "question": "A new team you just joined makes decisions very quickly in meetings, while you are still processing the information. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Adapt to the team's pace and make decisions with the information available."
+        },
+        {
+          "id": "B",
+          "text": "Ask the group to summarize the key tradeoffs before the decision."
+        },
+        {
+          "id": "C",
+          "text": "Request time after the meeting to reflect before committing to important choices."
+        }
+      ]
+    },
+    {
+      "id": "death_learning_1",
+      "card_id": "death",
+      "card_name": "Death",
+      "trial_type": "learning",
+      "title": "The Project That Is Not Working",
+      "question": "You have invested months in a project, but the central idea clearly is not working. More revisions might save it, but there is no guarantee. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "End the current version and rebuild around a new idea."
+        },
+        {
+          "id": "B",
+          "text": "Keep the useful parts but radically redesign the rest."
+        },
+        {
+          "id": "C",
+          "text": "Continue improving the existing project because too much has already been invested to abandon it."
+        }
+      ]
+    },
+    {
+      "id": "death_learning_2",
+      "card_id": "death",
+      "card_name": "Death",
+      "trial_type": "learning",
+      "title": "A Familiar Routine",
+      "question": "A routine that once helped you is now making your days repetitive and limiting new opportunities. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Drop the routine and design a completely new one."
+        },
+        {
+          "id": "B",
+          "text": "Keep the best parts while replacing what no longer works."
+        },
+        {
+          "id": "C",
+          "text": "Keep the routine because stability is still valuable."
+        }
+      ]
+    },
+    {
+      "id": "death_test_1",
+      "card_id": "death",
+      "card_name": "Death",
+      "trial_type": "test",
+      "title": "The Club You Have Outgrown",
+      "question": "You have belonged to a club for years and have many memories there, but it no longer feels meaningful or enjoyable. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Leave and use the time for something new."
+        },
+        {
+          "id": "B",
+          "text": "Reduce my involvement while keeping the relationships I still value."
+        },
+        {
+          "id": "C",
+          "text": "Stay involved because the history and community still matter."
+        }
+      ]
+    },
+    {
+      "id": "death_test_2",
+      "card_id": "death",
+      "card_name": "Death",
+      "trial_type": "test",
+      "title": "Retiring a Successful Feature",
+      "question": "A product feature was once popular but now causes technical problems and serves fewer users. Removing it will upset some long-time users. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Remove it and build a cleaner replacement for the future."
+        },
+        {
+          "id": "B",
+          "text": "Phase it out gradually while helping users transition."
+        },
+        {
+          "id": "C",
+          "text": "Keep maintaining it because existing users still depend on it."
+        }
+      ]
+    },
+    {
+      "id": "star_learning_1",
+      "card_id": "star",
+      "card_name": "The Star",
+      "trial_type": "learning",
+      "title": "Low Odds, High Impact",
+      "question": "Your group can attempt a project with a low chance of success, but if it works it could genuinely help many people. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Choose the ambitious project because the possible impact is worth the risk."
+        },
+        {
+          "id": "B",
+          "text": "Run a small pilot first and expand only if there are promising signs."
+        },
+        {
+          "id": "C",
+          "text": "Choose a more reliable project with a smaller but predictable benefit."
+        }
+      ]
+    },
+    {
+      "id": "star_learning_2",
+      "card_id": "star",
+      "card_name": "The Star",
+      "trial_type": "learning",
+      "title": "After a Bad Semester",
+      "question": "After a disappointing semester, you have the chance to apply for a highly competitive opportunity you once wanted. What do you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Apply and treat the setback as temporary."
+        },
+        {
+          "id": "B",
+          "text": "Apply only after making a concrete plan to improve my chances."
+        },
+        {
+          "id": "C",
+          "text": "Focus on a more realistic opportunity until I have rebuilt confidence and experience."
+        }
+      ]
+    },
+    {
+      "id": "star_test_1",
+      "card_id": "star",
+      "card_name": "The Star",
+      "trial_type": "test",
+      "title": "Try Again",
+      "question": "A friend failed at an ambitious project and now wants to try again with a revised idea. They ask you to join them. What would you do?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Join because the new attempt could still become something meaningful."
+        },
+        {
+          "id": "B",
+          "text": "Join only if the revised plan clearly addresses what failed before."
+        },
+        {
+          "id": "C",
+          "text": "Encourage them, but choose a more dependable project for myself."
+        }
+      ]
+    },
+    {
+      "id": "star_test_2",
+      "card_id": "star",
+      "card_name": "The Star",
+      "trial_type": "test",
+      "title": "A Better Future, Slowly",
+      "question": "Your community can fund a long-term environmental project whose benefits may not be visible for many years, or use the money for an immediate improvement everyone will notice now. What would you choose?",
+      "options": [
+        {
+          "id": "A",
+          "text": "Invest in the long-term project because future benefits are worth building toward."
+        },
+        {
+          "id": "B",
+          "text": "Split the funding so there is both visible progress now and investment in the future."
+        },
+        {
+          "id": "C",
+          "text": "Choose the immediate improvement because people need tangible benefits today."
+        }
+      ]
+    }
+  ]
+}

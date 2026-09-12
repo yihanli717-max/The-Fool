@@ -1,0 +1,17 @@
+{
+  "name": "shared_mind_tarot_generator",
+  "version": "1.0",
+  "system_prompt_file": "system_prompt.txt",
+  "user_prompt_template_file": "user_prompt_template.txt",
+  "json_schema_file": "shared_mind_output_schema.json",
+  "recommended_generation_mode": "append_only",
+  "merge_strategy": "Append generated cards to library.cards and generated trials to library.trials after schema validation and duplicate-ID checks.",
+  "placeholders": {
+    "NUMBER_OF_CARDS": "integer",
+    "LEARNING_TRIALS_PER_CARD": "integer",
+    "TEST_TRIALS_PER_CARD": "integer",
+    "EXISTING_CARD_IDS": "JSON array of strings",
+    "EXISTING_ARCHETYPES": "JSON array of strings",
+    "ADDITIONAL_REQUIREMENTS": "plain text"
+  }
+}
