@@ -1,0 +1,26 @@
+{
+  "name": "common-ground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,magenta \"npm run dev -w @common-ground/server\" \"npm run dev -w @common-ground/web\"",
+    "harness": "node --import tsx packages/shared/src/harness/run.ts",
+    "test": "node --import tsx --test packages/shared/src/engine.test.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck && npm run build -w @common-ground/web"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "concurrently": "^9.2.1",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}
