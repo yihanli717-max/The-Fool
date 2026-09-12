@@ -77,12 +77,12 @@ Culture is never treated as a fixed personality type. The application does not i
 - **Backend:** Node.js with Express
 - **Realtime transport:** Socket.IO
 - **Validation:** Zod
-- **Testing:** Vitest and React Testing Library
-- **Formatting and linting:** Prettier and ESLint
+- **Testing:** Node.js test runner with `tsx`
+- **Editor support:** ESLint and Prettier VS Code extensions
 
 VS Code is the recommended editor, not the compiler. TypeScript is compiled by `tsc`, while Vite handles the development and production web builds.
 
-### Planned repository layout
+### Repository layout
 
 ```text
 common-ground/
@@ -102,7 +102,7 @@ common-ground/
 
 The MVP does not require a public dataset. It uses:
 
-- scenario definitions stored as local JSON;
+- scenario definitions stored as local fixtures;
 - temporary player and room state kept in server memory;
 - choices generated during the live session;
 - deterministic reveal calculations derived from those choices.
@@ -120,20 +120,60 @@ The first release uses transparent deterministic scoring rather than an opaque A
 
 AI-generated wording may be added later, but the underlying result should remain reproducible and explainable.
 
-## Local Development
+## Run Locally
 
-Install dependencies and start both the Socket.IO server and browser client:
+### Prerequisites
+
+- Node.js 22.12 or newer
+- npm 10 or newer
+- Two to four browser tabs, phones, or browser windows for a multiplayer demo
+
+### Install and start
+
+From the repository root:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` in two to four browser tabs or phones. The local server runs on `http://localhost:3001` and exposes `GET /health`.
+`npm run dev` starts both processes through the root workspace script:
 
-Use a `.env` file based on [.env.example](.env.example) only when changing the default local ports or the browser-to-server URL.
+- Web client: `http://localhost:5173`
+- Socket.IO server: `http://localhost:3001`
 
-Run the deterministic domain harness and checks separately:
+Open `http://localhost:5173` in two to four browser tabs or phones. In the first tab, create a room. In the other tabs, enter the room code and join. The host can start once at least two players have joined.
+
+Use `Ctrl+C` in the terminal to stop both processes.
+
+### Run the multiplayer demo
+
+1. Open the web client in two to four browser tabs.
+2. Create a room in the first tab and copy the displayed room code.
+3. Join that room from the remaining tabs using different display names.
+4. Start **Stranded Island** from the host tab.
+5. Each player selects three private items and submits them.
+6. Discuss the options, then have the host submit the group decision.
+7. Each player predicts another player's top priority.
+8. Compare the group reveal: common ground, hidden agreement, and the biggest misread.
+
+### Check the server
+
+In another terminal, run:
+
+```bash
+curl http://localhost:3001/health
+```
+
+Expected response:
+
+```json
+{"status":"ok"}
+```
+
+### Run the checks
+
+These commands do not start the web server:
 
 ```bash
 npm run harness
@@ -145,6 +185,10 @@ npm run build
 The harness design is documented in [docs/HARNESS_LOOP.md](docs/HARNESS_LOOP.md).
 
 Rooms are intentionally held in memory for the hackathon MVP. A browser refresh can resume an active room, but restarting the server expires all local rooms.
+
+### Optional configuration
+
+Copy [.env.example](.env.example) to `.env` only when changing the default local ports or the browser-to-server URL. The default setup requires no API keys or external datasets.
 
 ## Demo Story
 
@@ -163,7 +207,7 @@ The central demo line is:
 
 ## Project Status
 
-PR 1 implementation is in progress. The roadmap is organized in [docs/PR_PLAN.md](docs/PR_PLAN.md).
+PR 1 MVP is implemented. The roadmap is organized in [docs/PR_PLAN.md](docs/PR_PLAN.md).
 
 ## Team
 
