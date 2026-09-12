@@ -405,6 +405,24 @@ Each tab uses `sessionStorage`, so its room identity is independent. Use
 **Leave this tab** if a tab resumes an old participant and you want it to act
 as someone new.
 
+### Public demo
+
+Play the deployed application at
+[`https://the-fool-web.vercel.app/`](https://the-fool-web.vercel.app/).
+
+To test multiplayer, open the public link in two or more separate browser
+tabs, windows, or devices. Create a room in the first tab, then join it from
+the other tabs with different nicknames and the room code.
+
+The public web client connects to the Socket.IO server at
+[`https://the-fool-s0ub.onrender.com`](https://the-fool-s0ub.onrender.com).
+The backend's health check is available at
+[`https://the-fool-s0ub.onrender.com/health`](https://the-fool-s0ub.onrender.com/health);
+the backend root is not a web page and may return `Cannot GET /`.
+
+The backend uses Render's free instance for the demo. If it has been idle, the
+first request may take up to about a minute while the service wakes up.
+
 To enable live scenario and continuation generation, put the key in the root
 `.env` file:
 
