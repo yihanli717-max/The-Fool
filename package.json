@@ -1,0 +1,24 @@
+{
+  "name": "common-ground",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "harness": "node --import tsx packages/shared/src/harness/run.ts",
+    "test": "node --import tsx --test packages/shared/src/engine.test.ts",
+    "typecheck": "tsc --noEmit",
+    "build": "npm run typecheck"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0"
+  }
+}

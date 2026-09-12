@@ -92,6 +92,7 @@ common-ground/
 ├── packages/
 │   └── shared/              # Events, schemas, scenario types, and reveal logic
 ├── docs/
+│   ├── HARNESS_LOOP.md
 │   └── PR_PLAN.md
 ├── README.md
 └── package.json
@@ -121,14 +122,17 @@ AI-generated wording may be added later, but the underlying result should remain
 
 ## Local Development
 
-The application scaffold will be introduced in the first implementation pull request. The expected commands are:
+Install dependencies, run the deterministic domain harness, and execute the checks:
 
 ```bash
 npm install
-npm run dev
+npm run harness
 npm test
+npm run typecheck
 npm run build
 ```
+
+The harness design is documented in [docs/HARNESS_LOOP.md](docs/HARNESS_LOOP.md).
 
 ## Demo Story
 
@@ -147,9 +151,8 @@ The central demo line is:
 
 ## Project Status
 
-Planning complete. Implementation is organized in [docs/PR_PLAN.md](docs/PR_PLAN.md).
+PR 1 implementation is in progress. The roadmap is organized in [docs/PR_PLAN.md](docs/PR_PLAN.md).
 
 ## Team
 
 Built by a two-person HackCMU team combining product development, game design, cognitive psychology, and developmental psychology.
-
