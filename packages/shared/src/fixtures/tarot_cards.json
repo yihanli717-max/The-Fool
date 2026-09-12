@@ -6,8 +6,16 @@
     {
       "id": "fool",
       "name": "The Fool",
+      "image_file": "The Fool.png",
+      "general_meaning": "New beginnings, experimentation, and stepping into uncertainty.",
       "archetype": "New Beginnings / Leap",
       "core_question": "Will I step into the unknown?",
+      "score_axis": {
+        "label": "Comfort with uncertainty",
+        "score_1": "Prefers preparation and familiar paths",
+        "score_2": "Balances exploration with preparation",
+        "score_3": "Welcomes experimentation despite uncertainty"
+      },
       "themes": [
         "new beginnings",
         "uncertainty",
@@ -18,8 +26,16 @@
     {
       "id": "magician",
       "name": "The Magician",
+      "image_file": "The Magician.png",
+      "general_meaning": "Agency, resourcefulness, and creating something with what is available.",
       "archetype": "Agency / Creation",
       "core_question": "Can I make something happen with what I have?",
+      "score_axis": {
+        "label": "Initiative with available resources",
+        "score_1": "Waits for clearer support or sufficient resources",
+        "score_2": "Coordinates a practical, limited experiment",
+        "score_3": "Acts quickly and improvises with what is available"
+      },
       "themes": [
         "initiative",
         "resourcefulness",
@@ -30,8 +46,16 @@
     {
       "id": "lovers",
       "name": "The Lovers",
+      "image_file": "The Lovers.png",
+      "general_meaning": "Connection, alignment, and the values or relationships that shape a choice.",
       "archetype": "Connection / Values",
       "core_question": "Who or what matters most in this choice?",
+      "score_axis": {
+        "label": "Weight given to connection and shared values",
+        "score_1": "Prioritizes an independent or immediate practical path",
+        "score_2": "Looks for balance among competing commitments",
+        "score_3": "Prioritizes connection or deeply held shared values"
+      },
       "themes": [
         "relationships",
         "values",
@@ -42,8 +66,16 @@
     {
       "id": "chariot",
       "name": "The Chariot",
+      "image_file": "The Chariot.png",
+      "general_meaning": "Drive, momentum, and how intensely someone pursues a goal.",
       "archetype": "Drive / Determination",
       "core_question": "How hard will I push toward the goal?",
+      "score_axis": {
+        "label": "Intensity of goal pursuit",
+        "score_1": "Protects stability and a sustainable pace",
+        "score_2": "Pushes forward while managing risk and capacity",
+        "score_3": "Pursues the goal aggressively despite uncertainty"
+      },
       "themes": [
         "ambition",
         "momentum",
@@ -54,8 +86,16 @@
     {
       "id": "strength",
       "name": "Strength",
+      "image_file": "Strength.png",
+      "general_meaning": "Courage, restraint, and responding constructively when pressure rises.",
       "archetype": "Courage / Self-Control",
       "core_question": "How do I respond when emotion or pressure rises?",
+      "score_axis": {
+        "label": "Response intensity under pressure",
+        "score_1": "Creates distance or waits before engaging",
+        "score_2": "Responds with measured regulation and clarity",
+        "score_3": "Acts directly and immediately under pressure"
+      },
       "themes": [
         "courage",
         "patience",
@@ -66,8 +106,16 @@
     {
       "id": "hermit",
       "name": "The Hermit",
+      "image_file": "The Hermit.png",
+      "general_meaning": "Reflection, independence, and making room for one's own judgment.",
       "archetype": "Reflection / Independence",
       "core_question": "Do I need space to think before I act?",
+      "score_axis": {
+        "label": "Need for independent reflection",
+        "score_1": "Acts with the group or available guidance",
+        "score_2": "Balances outside input with personal reflection",
+        "score_3": "Seeks substantial private reflection before acting"
+      },
       "themes": [
         "reflection",
         "independence",
@@ -78,8 +126,16 @@
     {
       "id": "death",
       "name": "Death",
+      "image_file": "Death.png",
+      "general_meaning": "Transformation, endings, and deciding when to release an old direction.",
       "archetype": "Transformation / Letting Go",
       "core_question": "When is it time to end the old and change direction?",
+      "score_axis": {
+        "label": "Readiness to let go and transform",
+        "score_1": "Preserves continuity and the familiar structure",
+        "score_2": "Keeps what works while changing selected parts",
+        "score_3": "Lets go decisively and begins a new direction"
+      },
       "themes": [
         "transition",
         "letting go",
@@ -90,8 +146,16 @@
     {
       "id": "star",
       "name": "The Star",
+      "image_file": "The Star.png",
+      "general_meaning": "Hope, renewal, and investing in a possibility whose value may take time to appear.",
       "archetype": "Hope / Possibility",
       "core_question": "Will I invest in a hopeful possibility?",
+      "score_axis": {
+        "label": "Investment in uncertain possibility",
+        "score_1": "Prefers reliable and immediately visible value",
+        "score_2": "Tests hopeful possibilities through a practical pilot",
+        "score_3": "Invests in ambitious long-term possibility despite uncertainty"
+      },
       "themes": [
         "hope",
         "idealism",

@@ -123,11 +123,13 @@ predictions or numeric scores.
 
 ## Primary deterministic fixture
 
-Three players:
+Two players use the provided 64×64 demo assets:
 
-- **Ari** — host, `sprout`;
-- **Mei** — member, `starling`;
-- **Jordan** — member, `ember`.
+- **Ari** — host, `female.png`;
+- **Mei** — member, `male.png`.
+
+Capacity, character uniqueness, and private-view behavior beyond two players
+remain focused engine tests.
 
 The seeded selector returns:
 
@@ -135,11 +137,11 @@ The seeded selector returns:
 The Fool -> The Magician -> The Lovers -> The Hermit
 ```
 
-1. Ari creates room `SM26`. Mei and Jordan join.
-2. The host starts Stage 1. The engine verifies all three characters are
+1. Ari creates room `SM26`. Mei joins.
+2. The host starts Stage 1. The engine verifies both characters are
    unique.
 3. The fake event generator returns one valid event for each selected card.
-4. For every event, each player submits once. The harness verifies other
+4. For every event, each player submits once. The harness verifies the other
    choices remain hidden until the final submission, then become visible as
    option text to everyone.
 5. The room enters the 10-minute discussion-break state.
@@ -149,7 +151,7 @@ The Fool -> The Magician -> The Lovers -> The Hermit
 8. Ari opens Stage 2.
 9. Mei predicts Ari's latest Fool score correctly. She receives a private
    confirmation and the continuation fake has zero calls.
-10. Jordan predicts a different Fool score. Only Jordan receives three
+10. Ari predicts a different score for Mei. Only Ari receives three
     continuation directions.
 11. The recorded continuation request has card/event/private-score context but
     no nickname or room code. Its display copy contains no target option text

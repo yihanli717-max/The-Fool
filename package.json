@@ -13,7 +13,7 @@
   "scripts": {
     "dev": "concurrently -n server,web -c blue,magenta \"npm run dev -w @common-ground/server\" \"npm run dev -w @common-ground/web\"",
     "harness": "node --import tsx packages/shared/src/harness/run.ts",
-    "test": "node --import tsx --test packages/shared/src/engine.test.ts",
+    "test": "node --import tsx --test packages/shared/src/engine.test.ts packages/shared/src/tarot/engine.test.ts",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && npm run build -w @common-ground/web"
   },

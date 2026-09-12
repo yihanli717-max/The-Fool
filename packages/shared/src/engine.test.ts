@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { applyAction, createRoom, DomainError, projectPublicRoom } from "./engine.ts";
-import { runHappyPathHarness } from "./harness/demoScript.ts";
+import { runLegacyHappyPathHarness } from "./harness/legacyDemoScript.ts";
 
 function createTestRoom() {
   return createRoom(
@@ -20,8 +20,8 @@ function joinedRoom() {
 }
 
 test("happy path reaches a deterministic, mutual-only reveal", () => {
-  const first = runHappyPathHarness().finalState;
-  const second = runHappyPathHarness().finalState;
+  const first = runLegacyHappyPathHarness().finalState;
+  const second = runLegacyHappyPathHarness().finalState;
 
   assert.equal(first.phase, "reveal");
   assert.deepEqual(first, second);
