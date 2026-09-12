@@ -1,0 +1,15 @@
+Create one fresh event for each of these four Tarot conversation domains.
+
+Round ID: {{ROUND_ID}}
+
+Cards:
+{{CARDS_JSON}}
+
+The output must contain exactly four events in the same card order. For every event:
+- use the supplied round ID exactly;
+- use the supplied card ID exactly;
+- create a unique event ID in the form {{ROUND_ID}}_<card_id>_event;
+- map the three supplied score-axis positions to A, B, and C in a shuffled order;
+- keep the score numeric and private-ready, while making option text natural and non-judgmental.
+
+Do not repeat the card's abstract description as the question. Turn it into a specific everyday decision with three plausible actions.

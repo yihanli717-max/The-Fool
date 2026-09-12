@@ -341,28 +341,24 @@ The current repository uses a TypeScript monorepo:
 - **Editor:** Visual Studio Code.
 
 ```text
-common-ground/
+hackcmu-2026/
 ├── apps/
 │   ├── web/                  # Multiplayer browser experience
 │   └── server/               # Room state, rules, and AI calls
 ├── packages/
 │   └── shared/               # Shared domain types and deterministic logic
+├── pixel characters/         # Ten unique 64x64 participant sprites
+├── Tarot Images/             # Tarot artwork
+├── tarot_event_prompt_pack/  # Four-event structured generator prompt
+├── tarot_continuation_prompt_pack/
 ├── docs/                     # Implementation plans and harness notes
 ├── README.md
 └── package.json
 ```
 
-The first implementation phase after this README review should replace the
-older activity-organizer flow with the Shared Mind room and Tarot round
-contract. Code changes should proceed in small, reviewable pull requests:
-
-1. define card, event, response, prediction, and continuation types;
-2. implement room creation, joining, unique character assignment, and host
-   controls;
-3. implement the four-card ground-truth rounds and group reveal;
-4. implement prediction storage and latest-by-Tarot behavior;
-5. add the private continuation branch with structured output and fallback;
-6. test the complete two-person and multi-person flow.
+The browser receives a player-specific room projection. Numeric ground truth,
+prediction comparisons, other players' private results, and
+`OPENAI_API_KEY` stay on the server.
 
 ## Run locally
 
@@ -390,9 +386,31 @@ Open the web client in two or more separate tabs. In the first tab, create a
 room as the host. In each other tab, use a different nickname and join with
 the room code. Each tab represents a separate participant connection.
 
-The current server state is temporary. Restarting the server clears active
-rooms. The implementation may add a short-lived local database later if the
-demo needs persistence, but user login is outside the MVP.
+Each tab uses `sessionStorage`, so its room identity is independent. Use
+**Leave this tab** if a tab resumes an old participant and you want it to act
+as someone new.
+
+To enable live scenario and continuation generation, put the key in the root
+`.env` file:
+
+```dotenv
+OPENAI_API_KEY=your_key_here
+OPENAI_MODEL=gpt-5.4-mini
+```
+
+The key is optional. Without it—or if a request fails or returns invalid
+output—the server uses the validated local fallback and the activity keeps
+moving. Never put the key in a `VITE_` variable; those values are exposed to
+the browser. Both `.env` and `tarot_demo_events.json` are intentionally
+ignored by Git.
+
+To demo from another laptop on the same network, keep `npm run dev` running
+on the host laptop and open `http://HOST_LAN_IP:5173` on the teammate's
+device. Both devices connect to the host's port 3001 automatically. Allow the
+two ports through the host firewall if prompted.
+
+Room state is temporary. Restarting the server clears active rooms; accounts
+and permanent profiles are outside the MVP.
 
 ### Checks
 
@@ -405,10 +423,14 @@ npm run build
 
 ## Status
 
-This branch is the specification reset for the updated Shared Mind design.
-The README is intentionally being reviewed before implementation changes are
-made. The existing application code may still reflect an earlier prototype
-until the follow-up implementation PRs are completed.
+The feature branch implements the end-to-end Shared Mind MVP:
+
+- two-to-ten-player rooms with unique pixel characters and refresh recovery;
+- four-card generated or fallback event rounds with private answers;
+- all-player reveals, conversation break, and host revision controls;
+- private predictions using the latest ground truth for each Tarot domain;
+- structured continuation generation with a privacy-safe fallback;
+- deterministic harness, domain tests, type checking, and production build.
 
 ## Team
 

@@ -1,0 +1,15 @@
+{
+  "name": "shared_mind_tarot_event_generator",
+  "version": "1.0",
+  "system_prompt_file": "system_prompt.txt",
+  "user_prompt_template_file": "user_prompt_template.txt",
+  "json_schema_file": "tarot_event_output_schema.json",
+  "recommended_api": "OpenAI Responses API with Structured Outputs",
+  "recommended_model": "gpt-5.4-mini",
+  "output_count": 4,
+  "placeholders": {
+    "ROUND_ID": "lowercase identifier",
+    "CARDS_JSON": "JSON array containing the four selected card contracts"
+  },
+  "fallback_required": true
+}

@@ -16,6 +16,7 @@ import {
   generateEventsWithFallback,
 } from "./generators.ts";
 import {
+  demoPixelCharacterAssets,
   pixelCharacterIds,
   tarotCardById,
 } from "./fixtures.ts";
@@ -91,6 +92,11 @@ test("Shared Mind harness is deterministic and reaches both prediction branches"
 });
 
 test("room capacity and unique pixel characters are enforced", () => {
+  assert.equal(demoPixelCharacterAssets.length, 10);
+  assert.deepEqual(
+    new Set(demoPixelCharacterAssets.map((character) => character.id)),
+    new Set(pixelCharacterIds),
+  );
   let state = lobby();
   assert.throws(
     () =>

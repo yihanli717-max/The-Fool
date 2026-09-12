@@ -12,19 +12,27 @@ export const tarotCards = parseTarotCardLibrary(rawTarotLibrary);
 export const pixelCharacterIds = [
   "female",
   "male",
-  "sprout",
-  "starling",
-  "ember",
-  "moss",
-  "ripple",
-  "comet",
-  "pebble",
-  "cloud",
+  "female1",
+  "male1",
+  "female2",
+  "male2",
+  "female3",
+  "male3",
+  "female4",
+  "male4",
 ] as const;
 
 export const demoPixelCharacterAssets = [
   { id: "female", imageFile: "female.png" },
   { id: "male", imageFile: "male.png" },
+  { id: "female1", imageFile: "female1.png" },
+  { id: "male1", imageFile: "male1.png" },
+  { id: "female2", imageFile: "female2.png" },
+  { id: "male2", imageFile: "male2.png" },
+  { id: "female3", imageFile: "female3.png" },
+  { id: "male3", imageFile: "male3.png" },
+  { id: "female4", imageFile: "female4.png" },
+  { id: "male4", imageFile: "male4.png" },
 ] as const;
 
 export function tarotCardById(cardId: string): TarotCard | undefined {

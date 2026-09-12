@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Shared Mind Tarot Round Events",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["events"],
+  "properties": {
+    "events": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "roundId",
+          "cardId",
+          "title",
+          "question",
+          "options"
+        ],
+        "properties": {
+          "id": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "roundId": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "cardId": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+          "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+          "question": { "type": "string", "minLength": 1, "maxLength": 800 },
+          "options": {
+            "type": "array",
+            "minItems": 3,
+            "maxItems": 3,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "text", "score"],
+              "properties": {
+                "id": { "type": "string", "enum": ["A", "B", "C"] },
+                "text": { "type": "string", "minLength": 1, "maxLength": 500 },
+                "score": { "type": "integer", "enum": [1, 2, 3] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
