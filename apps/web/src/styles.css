@@ -367,19 +367,6 @@ button.player-avatar { cursor: pointer; }
   justify-items: center;
   transform: translateX(-50%);
 }
-.pixel-world.target-selected .viewer-character::before,
-.pixel-world.conversation-ready .viewer-character::before,
-.pixel-world.matched .viewer-character::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  bottom: 54px;
-  width: 220px;
-  border-top: 3px dotted rgba(246, 211, 142, .52);
-  transform: rotate(-15deg);
-  transform-origin: center;
-}
-
 .prediction-dialog {
   position: sticky;
   z-index: 20;
