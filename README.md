@@ -1,75 +1,168 @@
 # Common Ground
 
-Common Ground is a browser-based multiplayer social experience that helps strangers understand how they make decisions together.
+**Common Ground turns a room of strangers into a group with a next step.**
 
-Players enter a room, make a private choice in a short scenario, negotiate a shared answer, predict one another's priorities, and receive a group reveal. The reveal highlights shared values, hidden agreement, and moments where a player's intention was misunderstood.
+It is a realtime, browser-based experience for orientations, hackathon mixers,
+student events, and team retreats. An organizer sets the purpose of a small
+activity; participants share a few low-stakes interaction preferences; the
+group receives a privacy-safe conversation prompt; and, after talking, people
+can anonymously opt into a concrete follow-up.
 
-> We do not break the ice by asking people to describe themselves. We let them discover one another by making a decision together.
+> We do not decide who a person is from a profile. We help a group discover
+> what actually connects them.
 
-## Why It Exists
+Common Ground is built for HackCMU's **Multiplayer** track. The multiplayer
+interaction is the product: the value emerges only when people in the same
+room respond, talk, reflect, and choose what to do next together.
 
-Most event tools optimize logistics: registration, schedules, rooms, and attendance. They do not solve the harder problem of helping the people in the room form a meaningful connection.
+## Product Thesis
 
-Common Ground gives organizers a lightweight, reusable activity while giving participants a structured reason to talk. Its core interaction is designed around three perspectives:
+Most event tools optimize logistics: registration, calendars, rooms, and
+attendance. The harder problem starts after people arrive: how do strangers
+move from being placed near one another to forming a real connection?
 
-- **Meant:** what a player privately valued.
-- **Expressed:** what the group eventually chose.
-- **Heard:** what other players believed that person valued.
+Common Ground addresses that transition with one short, facilitated loop:
 
-The differences between those perspectives create the final insight.
+```text
+MATCH -> CONNECT -> UNDERSTAND -> CONTINUE
+```
 
-## MVP Flow
+| Stage | Participant experience | Product purpose |
+| --- | --- | --- |
+| **MATCH** | Share a short, optional preference card and join a small group. | Give an organizer a starting point without reducing people to labels. |
+| **CONNECT** | Receive an anonymized shared theme and a tailored conversation starter. | Make the first interaction less awkward. |
+| **UNDERSTAND** | Lightly mark what the group actually clicked on after the conversation. | Separate predicted similarity from real connection. |
+| **CONTINUE** | Privately opt into a next activity; reveal it only when interest is mutual. | Close the intention-to-action gap. |
 
-1. An organizer selects a scenario and creates a room.
-2. Two to four players join with a short room code or QR code.
-3. Each player privately selects three options and the reasons behind them.
-4. The group has 90 seconds to agree on three shared options.
-5. Each player predicts another player's strongest priority.
-6. The application reveals common ground, hidden agreement, and the largest misread.
-7. Players can anonymously express interest in a follow-up activity.
+The intended moment of delight is:
 
-The first scenario is **Stranded Island**:
+> We matched you because of anime. But you actually connected over game design.
 
-> Your group is stranded on an island. You may bring only three of eight items.
+## The Hackathon MVP
 
-The interaction engine is scenario-independent. Future scenarios can reuse the same mechanics for student orientation, team building, hackathons, and cross-cultural events.
+The MVP supports **one organizer and a single group of two to four
+participants**. It is deliberately focused on an end-to-end social loop, not a
+full event-management system.
 
-## Hackathon Scope
+### 1. Create an activity — organizer
 
-The first release intentionally excludes:
+The organizer creates a room and provides:
 
-- account creation and authentication;
-- participant profiling, MBTI, or identity-based clustering;
-- automated seating and floor-plan optimization;
-- catering and venue management;
-- transcript recording or conversation surveillance;
-- a general-purpose AI event planner;
-- production persistence and analytics.
+- activity name, such as *Hackathon Mixer* or *International Student Welcome*;
+- one event goal: meet people comfortably, discover new perspectives, or form
+  a small follow-up group;
+- a grouping mode:
+  - **Comfort** — prioritize obvious common ground;
+  - **Discovery** — surface a bridge between different interests;
+  - **Balanced** — include both familiarity and novelty.
 
-This scope keeps the product focused on one complete, demonstrable social loop.
+The organizer receives a room code to share. In the MVP, a room represents one
+table; automatic grouping across a large attendee list is explicitly out of
+scope.
 
-## Psychology-Informed Design
+### 2. Join and set the tone — participant
 
-Common Ground uses behavioral choices instead of personality labels. Players show their priorities through decisions, negotiation, and peer perception rather than being categorized by a questionnaire.
+Each participant joins with a display name and completes a short preference
+card. The card uses behavioral, event-specific prompts rather than MBTI,
+ethnicity, diagnoses, or personality claims:
 
-The MVP follows four design principles:
+- interests they would be happy to discuss;
+- preferred interaction style: small-group conversation or a more structured
+  activity;
+- desired depth: meet many people or get to know a few people well;
+- what they hope to get from this event.
 
-- **Low cognitive load:** choices are short, visual, and bounded.
-- **Progressive disclosure:** private reflection happens before group discussion.
-- **Perspective-taking:** players actively predict what another person valued.
-- **Participant agency:** players may skip sensitive prompts and are not assigned psychological diagnoses.
+All prompts are optional except a display name. The app stores only the
+choices needed for the current session.
 
-The reveal describes behavior within one activity. It does not claim to measure personality, mental health, or stable psychological traits.
+### 3. Discover actual common ground — group
 
-## Cross-Cultural Design
+Once at least two people have joined, Common Ground aggregates the group’s
+preferences without showing who selected what. It presents:
 
-The project is informed by the team's experience as Asian students navigating cross-cultural communication. It addresses universal situations such as uncertainty around indirect communication, hesitation to enter an unfamiliar conversation, and difficulty turning a pleasant interaction into a concrete follow-up.
+- an **initial shared theme** (for example, *games and Japanese pop culture*);
+- one low-pressure conversation starter suited to the event goal and grouping
+  mode;
+- a short prompt that asks the group to mark the topic that genuinely created
+  energy or curiosity.
 
-Culture is never treated as a fixed personality type. The application does not infer ethnicity or expose identity information. Future scenarios may invite players to share cultural perspectives voluntarily and on their own terms.
+The reveal makes the distinction clear:
+
+```text
+Predicted common ground: Japanese pop culture
+Actual common ground: Creative game design
+```
+
+This protects participants from being locked into their questionnaire labels
+and supports perspective-taking without pretending to assess personality.
+
+### 4. Turn connection into action — group
+
+At the end, each person can privately choose one optional follow-up, such as:
+
+- coffee next week;
+- an indie game night;
+- a study or co-working session;
+- no follow-up today.
+
+Individual responses remain private. The room sees a follow-up only when at
+least two people choose the same option; otherwise the app simply thanks the
+group. This lowers the social friction of being the first person to ask.
+
+## Why This Is Psychology-Informed
+
+The experience draws on cognitive and developmental psychology without making
+clinical or trait-based claims.
+
+- **Lower cognitive load:** the preference card is short, concrete, and
+  optional.
+- **Progressive disclosure:** people reflect individually before the group is
+  shown an aggregate theme.
+- **Perspective-taking:** the group compares an initial prediction with what
+  actually made the conversation meaningful.
+- **Agency and privacy:** participants choose what to share and whether to opt
+  into any continuation.
+- **Intention to action:** mutual, anonymous interest makes a next step easier
+  than an unstructured “we should hang out sometime.”
+
+The experience is informed by the team’s perspective as Asian students
+navigating cross-cultural conversations. Culture is never inferred or treated
+as a fixed type; sharing a cultural perspective is always voluntary.
+
+## Data and Privacy
+
+This project does **not** require a public dataset or a trained matching model.
+The MVP uses local fixtures for starter prompts and follow-up options, plus
+temporary choices created during the live session.
+
+- Room and preference data live only in server memory for the current demo.
+- No account, legal name, audio recording, transcript, ethnicity, MBTI, or
+  mental-health data is collected.
+- The organizer sees group-level themes, never a participant’s individual
+  preferences or follow-up choice.
+- Restarting the local server expires all rooms.
+
+## Current Build Plan
+
+The repository initially contained a **Stranded Island** group-decision game.
+That was a useful realtime technical prototype, but it is not the final product
+described above. The implementation is being replaced in this order:
+
+1. Define the Common Ground product contract in this README.
+2. Replace the old game domain with event, preference-card, group-theme, and
+   mutual-follow-up types.
+3. Replace Socket.IO events and server transitions with the four-stage flow.
+4. Replace the browser screens with organizer and participant experiences.
+5. Add deterministic tests for anonymization, theme selection, and mutual
+   follow-up reveals.
+6. Run a two-to-four-person local and multi-device demo.
+
+The first phase is intentionally a single table of two to four participants.
+Large-event auto-grouping, QR generation, persistent accounts, calendar
+integration, catering, venue planning, and AI profiling are post-hackathon
+extensions.
 
 ## Technology
-
-### Development environment
 
 - **Editor:** Visual Studio Code
 - **Language:** TypeScript
@@ -77,20 +170,16 @@ Culture is never treated as a fixed personality type. The application does not i
 - **Backend:** Node.js with Express
 - **Realtime transport:** Socket.IO
 - **Validation:** Zod
-- **Testing:** Vitest and React Testing Library
+- **Testing:** Node.js test runner with `tsx`
 - **Formatting and linting:** Prettier and ESLint
-
-VS Code is the recommended editor, not the compiler. TypeScript is compiled by `tsc`, while Vite handles the development and production web builds.
-
-### Planned repository layout
 
 ```text
 common-ground/
 ├── apps/
-│   ├── web/                 # React participant interface
+│   ├── web/                 # Organizer and participant browser experience
 │   └── server/              # Express and Socket.IO room server
 ├── packages/
-│   └── shared/              # Events, schemas, scenario types, and reveal logic
+│   └── shared/              # Domain types, matching, and privacy-safe reveal rules
 ├── docs/
 │   ├── HARNESS_LOOP.md
 │   └── PR_PLAN.md
@@ -98,42 +187,63 @@ common-ground/
 └── package.json
 ```
 
-## Data Strategy
+## Run Locally
 
-The MVP does not require a public dataset. It uses:
+### Prerequisites
 
-- scenario definitions stored as local JSON;
-- temporary player and room state kept in server memory;
-- choices generated during the live session;
-- deterministic reveal calculations derived from those choices.
+- Node.js 22.12 or newer
+- npm 10 or newer
+- Two to four browser tabs, phones, or browser windows for a multiplayer demo
 
-Sample players may be used for development and judge demos. They must be clearly labeled as demo data. No sensitive participant profile data is needed.
+### Install and start
 
-## Reveal Logic
-
-The first release uses transparent deterministic scoring rather than an opaque AI judgment.
-
-- **Strongest common ground:** the priority selected by the greatest number of players.
-- **Hidden agreement:** two or more players privately shared a priority that was not represented in the final group choice.
-- **Biggest misread:** the largest difference between peer predictions and a player's stated private priority.
-- **Group choice:** the three options submitted during the negotiation round.
-
-AI-generated wording may be added later, but the underlying result should remain reproducible and explainable.
-
-## Local Development
-
-Install dependencies and start both the Socket.IO server and browser client:
+From the repository root:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Open `http://localhost:5173` in two to four browser tabs or phones. The local server runs on `http://localhost:3001` and exposes `GET /health`.
+This starts both processes:
 
-Use a `.env` file based on [.env.example](.env.example) only when changing the default local ports or the browser-to-server URL.
+- web client: `http://localhost:5173`
+- Socket.IO server: `http://localhost:3001`
 
-Run the deterministic domain harness and checks separately:
+Open `http://localhost:5173` in two to four browser tabs. Keep the terminal
+running; `Ctrl+C` stops both services. The current server state is in memory,
+so server restarts clear active rooms.
+
+### Test with several local participants
+
+1. In tab one, enter a display name and create an activity room.
+2. Copy its room code.
+3. In every other tab, enter a **new display name** and that room code before
+   selecting **Join room**.
+4. Use an incognito window if a tab restores an old session.
+
+Each tab creates a separate realtime connection. A second participant must
+enter both a display name and a room code; the first tab’s name is not shared
+automatically.
+
+### Test from other devices with Tailscale
+
+Install and sign in to Tailscale on the host computer and every test device.
+On the host, find its Tailscale IPv4 address:
+
+```bash
+tailscale ip -4
+```
+
+With `npm run dev` running on the host, open
+`http://<tailscale-ip>:5173` from the other devices. The web client connects to
+the Socket.IO server on the same host at port `3001`.
+
+If a firewall blocks it, allow inbound TCP ports `5173` and `3001`. The
+development CORS configuration accepts Tailscale IPv4 addresses; for another
+hostname or proxy, add it to `CLIENT_ORIGIN` as a comma-separated origin in a
+local `.env` file based on [.env.example](.env.example).
+
+### Checks
 
 ```bash
 npm run harness
@@ -142,29 +252,7 @@ npm run typecheck
 npm run build
 ```
 
-The harness design is documented in [docs/HARNESS_LOOP.md](docs/HARNESS_LOOP.md).
-
-Rooms are intentionally held in memory for the hackathon MVP. A browser refresh can resume an active room, but restarting the server expires all local rooms.
-
-## Demo Story
-
-The three-minute demo should show one uninterrupted session:
-
-1. Create a room.
-2. Join from two to four browser windows or phones.
-3. Make private choices.
-4. Submit a group choice.
-5. Predict another player's priority.
-6. Reveal one shared value, one hidden agreement, and one misread.
-
-The central demo line is:
-
-> We matched through a decision, but connected through what the decision revealed.
-
-## Project Status
-
-PR 1 implementation is in progress. The roadmap is organized in [docs/PR_PLAN.md](docs/PR_PLAN.md).
-
 ## Team
 
-Built by a two-person HackCMU team combining product development, game design, cognitive psychology, and developmental psychology.
+Built by a two-person HackCMU team combining product development, cognitive
+psychology, developmental psychology, and cross-cultural experience.

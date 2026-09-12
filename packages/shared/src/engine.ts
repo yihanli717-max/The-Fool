@@ -1,12 +1,17 @@
 import type {
-  ItemChoice,
+  ActivityConfig,
   Player,
+  PreferenceCard,
   PublicRoomView,
   RoomAction,
   RoomState,
-  Scenario,
 } from "./domain.ts";
-import { calculateReveal } from "./reveal.ts";
+import {
+  followUpById,
+  interestById,
+  themeById,
+} from "./fixtures/connection.ts";
+import { calculateGroupReveal, selectInitialTheme } from "./reveal.ts";
 
 export class DomainError extends Error {
   override readonly name = "DomainError";
@@ -15,16 +20,17 @@ export class DomainError extends Error {
 export function createRoom(
   room: { id: string; code: string },
   host: Omit<Player, "isHost">,
-  scenario: Scenario,
+  activity: ActivityConfig,
 ): RoomState {
   return {
     ...room,
     phase: "lobby",
-    scenario,
+    activity,
     players: [{ ...host, isHost: true }],
-    privateSelections: {},
-    groupSelection: null,
-    peerPredictions: {},
+    preferenceCards: {},
+    initialTheme: null,
+    reflectionVotes: {},
+    followUpSelections: {},
     reveal: null,
     revision: 0,
   };
@@ -32,9 +38,7 @@ export function createRoom(
 
 function requirePhase(state: RoomState, expected: RoomState["phase"]): void {
   if (state.phase !== expected) {
-    throw new DomainError(
-      `Expected phase ${expected}, received action during ${state.phase}`,
-    );
+    throw new DomainError(`Expected phase ${expected}, received action during ${state.phase}`);
   }
 }
 
@@ -52,32 +56,27 @@ function requireHost(state: RoomState, playerId: string): void {
   }
 }
 
-function validateChoices(
-  choices: ItemChoice[],
-  expectedCount: number,
-  scenario: Scenario,
+function requireAllSubmitted(
+  state: RoomState,
+  submissions: Record<string, unknown>,
+  stage: string,
 ): void {
-  if (choices.length !== expectedCount) {
-    throw new DomainError(`Exactly ${expectedCount} choices are required`);
+  if (state.players.some((player) => !submissions[player.id])) {
+    throw new DomainError(`Wait until everyone has completed ${stage}`);
   }
+}
 
-  const validItems = new Set(scenario.items.map((item) => item.id));
-  const validPriorities = new Set(
-    scenario.priorities.map((priority) => priority.id),
-  );
-  const selectedItems = new Set<string>();
-
-  for (const choice of choices) {
-    if (!validItems.has(choice.itemId)) {
-      throw new DomainError(`Unknown item ${choice.itemId}`);
+function validatePreferenceCard(card: PreferenceCard): void {
+  if (card.interestIds.length > 3) {
+    throw new DomainError("Choose up to three interests");
+  }
+  if (new Set(card.interestIds).size !== card.interestIds.length) {
+    throw new DomainError("Choose each interest only once");
+  }
+  for (const interestId of card.interestIds) {
+    if (!interestById(interestId)) {
+      throw new DomainError(`Unknown interest ${interestId}`);
     }
-    if (!validPriorities.has(choice.priorityId)) {
-      throw new DomainError(`Unknown priority ${choice.priorityId}`);
-    }
-    if (selectedItems.has(choice.itemId)) {
-      throw new DomainError(`Duplicate item ${choice.itemId}`);
-    }
-    selectedItems.add(choice.itemId);
   }
 }
 
@@ -90,13 +89,13 @@ export function applyAction(state: RoomState, action: RoomAction): RoomState {
     case "player.join": {
       requirePhase(state, "lobby");
       if (state.players.length >= 4) {
-        throw new DomainError("A room supports at most four players");
+        throw new DomainError("A room supports at most four participants");
       }
       if (state.players.some((player) => player.id === action.player.id)) {
         throw new DomainError(`Player ${action.player.id} already joined`);
       }
       if (action.player.isHost) {
-        throw new DomainError("A joined player cannot replace the room host");
+        throw new DomainError("A joined participant cannot replace the room host");
       }
       return {
         ...state,
@@ -118,134 +117,123 @@ export function applyAction(state: RoomState, action: RoomAction): RoomState {
       };
     }
 
-    case "game.start": {
+    case "activity.start": {
       requirePhase(state, "lobby");
       requireHost(state, action.actorPlayerId);
       if (state.players.length < 2) {
-        throw new DomainError("At least two players are required");
+        throw new DomainError("At least two participants are required");
+      }
+      return { ...state, phase: "preferences", revision: nextRevision(state) };
+    }
+
+    case "preferences.submit": {
+      requirePhase(state, "preferences");
+      requirePlayer(state, action.actorPlayerId);
+      validatePreferenceCard(action.card);
+      if (state.preferenceCards[action.actorPlayerId]) {
+        throw new DomainError("Your preference card was already submitted");
       }
       return {
         ...state,
-        phase: "private-choice",
+        preferenceCards: {
+          ...state.preferenceCards,
+          [action.actorPlayerId]: action.card,
+        },
         revision: nextRevision(state),
       };
     }
 
-    case "game.restart": {
+    case "conversation.begin": {
+      requirePhase(state, "preferences");
+      requireHost(state, action.actorPlayerId);
+      requireAllSubmitted(state, state.preferenceCards, "the preference card");
+      return {
+        ...state,
+        phase: "conversation",
+        initialTheme: selectInitialTheme(
+          state.activity,
+          Object.values(state.preferenceCards),
+        ),
+        revision: nextRevision(state),
+      };
+    }
+
+    case "reflection.open": {
+      requirePhase(state, "conversation");
+      requireHost(state, action.actorPlayerId);
+      return { ...state, phase: "reflection", revision: nextRevision(state) };
+    }
+
+    case "reflection.submit": {
+      requirePhase(state, "reflection");
+      requirePlayer(state, action.actorPlayerId);
+      if (!themeById(action.themeId)) {
+        throw new DomainError(`Unknown connection theme ${action.themeId}`);
+      }
+      if (state.reflectionVotes[action.actorPlayerId]) {
+        throw new DomainError("Your reflection was already submitted");
+      }
+      const reflectionVotes = {
+        ...state.reflectionVotes,
+        [action.actorPlayerId]: action.themeId,
+      };
+      const allSubmitted = state.players.every((player) => reflectionVotes[player.id]);
+      return {
+        ...state,
+        reflectionVotes,
+        phase: allSubmitted ? "follow-up" : state.phase,
+        revision: nextRevision(state),
+      };
+    }
+
+    case "follow-up.submit": {
+      requirePhase(state, "follow-up");
+      requirePlayer(state, action.actorPlayerId);
+      if (!followUpById(action.followUpOptionId)) {
+        throw new DomainError(`Unknown follow-up option ${action.followUpOptionId}`);
+      }
+      if (state.followUpSelections[action.actorPlayerId]) {
+        throw new DomainError("Your follow-up choice was already submitted");
+      }
+      const followUpSelections = {
+        ...state.followUpSelections,
+        [action.actorPlayerId]: action.followUpOptionId,
+      };
+      const allSubmitted = state.players.every((player) => followUpSelections[player.id]);
+      const nextState: RoomState = {
+        ...state,
+        followUpSelections,
+        phase: allSubmitted ? "reveal" : state.phase,
+        revision: nextRevision(state),
+      };
+      return allSubmitted
+        ? { ...nextState, reveal: calculateGroupReveal(nextState) }
+        : nextState;
+    }
+
+    case "activity.restart": {
       requirePhase(state, "reveal");
       requireHost(state, action.actorPlayerId);
       return {
         ...state,
         phase: "lobby",
-        privateSelections: {},
-        groupSelection: null,
-        peerPredictions: {},
+        preferenceCards: {},
+        initialTheme: null,
+        reflectionVotes: {},
+        followUpSelections: {},
         reveal: null,
         revision: nextRevision(state),
       };
-    }
-
-    case "private-choice.submit": {
-      requirePhase(state, "private-choice");
-      requirePlayer(state, action.actorPlayerId);
-      validateChoices(
-        action.choices,
-        state.scenario.privateSelectionCount,
-        state.scenario,
-      );
-      if (
-        !state.scenario.priorities.some(
-          (priority) => priority.id === action.primaryPriorityId,
-        )
-      ) {
-        throw new DomainError(`Unknown priority ${action.primaryPriorityId}`);
-      }
-      if (state.privateSelections[action.actorPlayerId]) {
-        throw new DomainError("Private choice was already submitted");
-      }
-
-      const privateSelections = {
-        ...state.privateSelections,
-        [action.actorPlayerId]: {
-          playerId: action.actorPlayerId,
-          choices: action.choices,
-          primaryPriorityId: action.primaryPriorityId,
-        },
-      };
-      const allSubmitted =
-        Object.keys(privateSelections).length === state.players.length;
-
-      return {
-        ...state,
-        privateSelections,
-        phase: allSubmitted ? "group-choice" : state.phase,
-        revision: nextRevision(state),
-      };
-    }
-
-    case "group-choice.submit": {
-      requirePhase(state, "group-choice");
-      requireHost(state, action.actorPlayerId);
-      validateChoices(
-        action.choices,
-        state.scenario.groupSelectionCount,
-        state.scenario,
-      );
-      return {
-        ...state,
-        groupSelection: { choices: action.choices },
-        phase: "peer-prediction",
-        revision: nextRevision(state),
-      };
-    }
-
-    case "peer-prediction.submit": {
-      requirePhase(state, "peer-prediction");
-      requirePlayer(state, action.actorPlayerId);
-      requirePlayer(state, action.targetPlayerId);
-      if (action.actorPlayerId === action.targetPlayerId) {
-        throw new DomainError("A player cannot predict their own priority");
-      }
-      if (
-        !state.scenario.priorities.some(
-          (priority) => priority.id === action.predictedPriorityId,
-        )
-      ) {
-        throw new DomainError(`Unknown priority ${action.predictedPriorityId}`);
-      }
-      if (state.peerPredictions[action.actorPlayerId]) {
-        throw new DomainError("Peer prediction was already submitted");
-      }
-
-      const peerPredictions = {
-        ...state.peerPredictions,
-        [action.actorPlayerId]: {
-          authorPlayerId: action.actorPlayerId,
-          targetPlayerId: action.targetPlayerId,
-          predictedPriorityId: action.predictedPriorityId,
-        },
-      };
-      const allSubmitted =
-        Object.keys(peerPredictions).length === state.players.length;
-      const nextState: RoomState = {
-        ...state,
-        peerPredictions,
-        phase: allSubmitted ? "reveal" : state.phase,
-        revision: nextRevision(state),
-      };
-
-      return allSubmitted
-        ? { ...nextState, reveal: calculateReveal(nextState) }
-        : nextState;
     }
   }
 }
 
 export function projectPublicRoom(state: RoomState): PublicRoomView {
-  const { privateSelections, peerPredictions, ...publicState } = state;
+  const { preferenceCards, reflectionVotes, followUpSelections, ...publicState } = state;
   return {
     ...publicState,
-    privateSubmissionPlayerIds: Object.keys(privateSelections),
-    predictionSubmissionPlayerIds: Object.keys(peerPredictions),
+    preferenceSubmissionPlayerIds: Object.keys(preferenceCards),
+    reflectionSubmissionPlayerIds: Object.keys(reflectionVotes),
+    followUpSubmissionPlayerIds: Object.keys(followUpSelections),
   };
 }

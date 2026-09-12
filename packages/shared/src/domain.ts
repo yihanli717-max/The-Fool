@@ -1,12 +1,32 @@
 export const ROOM_PHASES = [
   "lobby",
-  "private-choice",
-  "group-choice",
-  "peer-prediction",
+  "preferences",
+  "conversation",
+  "reflection",
+  "follow-up",
   "reveal",
 ] as const;
 
 export type RoomPhase = (typeof ROOM_PHASES)[number];
+
+export const EVENT_GOALS = ["comfort", "discovery", "continuation"] as const;
+export type EventGoal = (typeof EVENT_GOALS)[number];
+
+export const GROUPING_MODES = ["comfort", "discovery", "balanced"] as const;
+export type GroupingMode = (typeof GROUPING_MODES)[number];
+
+export const INTERACTION_STYLES = ["small-group", "structured"] as const;
+export type InteractionStyle = (typeof INTERACTION_STYLES)[number];
+
+export const CONNECTION_STYLES = ["breadth", "depth"] as const;
+export type ConnectionStyle = (typeof CONNECTION_STYLES)[number];
+
+export const EVENT_INTENTS = [
+  "casual",
+  "new-perspectives",
+  "keep-in-touch",
+] as const;
+export type EventIntent = (typeof EVENT_INTENTS)[number];
 
 export type Player = {
   id: string;
@@ -15,72 +35,70 @@ export type Player = {
   connected: boolean;
 };
 
-export type ScenarioItem = {
-  id: string;
-  label: string;
-  emoji?: string;
-};
-
-export type Priority = {
-  id: string;
-  label: string;
-};
-
-export type Scenario = {
-  id: string;
+export type ActivityConfig = {
   title: string;
-  prompt: string;
-  items: ScenarioItem[];
-  priorities: Priority[];
-  privateSelectionCount: number;
-  groupSelectionCount: number;
-  discussionSeconds: number;
+  eventGoal: EventGoal;
+  groupingMode: GroupingMode;
 };
 
-export type ItemChoice = {
-  itemId: string;
-  priorityId: string;
+export type Interest = {
+  id: string;
+  label: string;
+  emoji: string;
+  themeIds: string[];
 };
 
-export type PrivateSelection = {
-  playerId: string;
-  choices: ItemChoice[];
-  primaryPriorityId: string;
+export type ConnectionThemeDefinition = {
+  id: string;
+  label: string;
+  description: string;
+  starters: Record<GroupingMode, string>;
 };
 
-export type GroupSelection = {
-  choices: ItemChoice[];
+export type GroupTheme = {
+  id: string;
+  label: string;
+  description: string;
+  starter: string;
 };
 
-export type PeerPrediction = {
-  authorPlayerId: string;
-  targetPlayerId: string;
-  predictedPriorityId: string;
+export type PreferenceCard = {
+  interestIds: string[];
+  interactionStyle?: InteractionStyle;
+  connectionStyle?: ConnectionStyle;
+  eventIntent?: EventIntent;
 };
 
-export type Misread = {
-  authorPlayerId: string;
-  targetPlayerId: string;
-  predictedPriorityId: string;
-  actualPriorityId: string;
+export type FollowUpOption = {
+  id: string;
+  label: string;
+  description: string;
+  isOptOut?: boolean;
 };
 
-export type Reveal = {
-  commonGroundPriorityIds: string[];
-  hiddenAgreementPriorityIds: string[];
-  biggestMisread: Misread | null;
+export type FollowUpMatch = {
+  id: string;
+  label: string;
+  participantCount: number;
+};
+
+export type GroupReveal = {
+  initialTheme: GroupTheme;
+  actualTheme: Pick<GroupTheme, "id" | "label" | "description">;
+  mutualFollowUps: FollowUpMatch[];
 };
 
 export type RoomState = {
   id: string;
   code: string;
   phase: RoomPhase;
-  scenario: Scenario;
+  activity: ActivityConfig;
   players: Player[];
-  privateSelections: Record<string, PrivateSelection>;
-  groupSelection: GroupSelection | null;
-  peerPredictions: Record<string, PeerPrediction>;
-  reveal: Reveal | null;
+  preferenceCards: Record<string, PreferenceCard>;
+  initialTheme: GroupTheme | null;
+  reflectionVotes: Record<string, string>;
+  followUpSelections: Record<string, string>;
+  reveal: GroupReveal | null;
   revision: number;
 };
 
@@ -91,30 +109,31 @@ export type RoomAction =
       actorPlayerId: string;
       connected: boolean;
     }
-  | { type: "game.start"; actorPlayerId: string }
-  | { type: "game.restart"; actorPlayerId: string }
+  | { type: "activity.start"; actorPlayerId: string }
+  | { type: "conversation.begin"; actorPlayerId: string }
+  | { type: "reflection.open"; actorPlayerId: string }
   | {
-      type: "private-choice.submit";
+      type: "preferences.submit";
       actorPlayerId: string;
-      choices: ItemChoice[];
-      primaryPriorityId: string;
+      card: PreferenceCard;
     }
   | {
-      type: "group-choice.submit";
+      type: "reflection.submit";
       actorPlayerId: string;
-      choices: ItemChoice[];
+      themeId: string;
     }
   | {
-      type: "peer-prediction.submit";
+      type: "follow-up.submit";
       actorPlayerId: string;
-      targetPlayerId: string;
-      predictedPriorityId: string;
-    };
+      followUpOptionId: string;
+    }
+  | { type: "activity.restart"; actorPlayerId: string };
 
 export type PublicRoomView = Omit<
   RoomState,
-  "privateSelections" | "peerPredictions"
+  "preferenceCards" | "reflectionVotes" | "followUpSelections"
 > & {
-  privateSubmissionPlayerIds: string[];
-  predictionSubmissionPlayerIds: string[];
+  preferenceSubmissionPlayerIds: string[];
+  reflectionSubmissionPlayerIds: string[];
+  followUpSubmissionPlayerIds: string[];
 };

@@ -1,97 +1,107 @@
 import type {
-  Misread,
-  PeerPrediction,
-  Priority,
-  Reveal,
+  ActivityConfig,
+  GroupReveal,
+  GroupTheme,
+  PreferenceCard,
   RoomState,
 } from "./domain.ts";
+import {
+  connectionThemes,
+  followUpById,
+  interestById,
+  themeById,
+} from "./fixtures/connection.ts";
 
-function priorityOrder(priorities: Priority[]): Map<string, number> {
-  return new Map(priorities.map((priority, index) => [priority.id, index]));
-}
-
-function sortByScenarioOrder(ids: string[], priorities: Priority[]): string[] {
-  const order = priorityOrder(priorities);
-  return [...ids].sort(
-    (left, right) => (order.get(left) ?? Infinity) - (order.get(right) ?? Infinity),
-  );
-}
-
-function primaryPriorityForPlayer(state: RoomState, playerId: string): string {
-  const selection = state.privateSelections[playerId];
-  if (!selection) {
-    throw new Error(`Missing private selection for player ${playerId}`);
+function countThemeVotes(cards: PreferenceCard[]): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const card of cards) {
+    const participantThemeIds = new Set(
+      card.interestIds.flatMap(
+        (interestId) => interestById(interestId)?.themeIds ?? [],
+      ),
+    );
+    for (const themeId of participantThemeIds) {
+      counts.set(themeId, (counts.get(themeId) ?? 0) + 1);
+    }
   }
-  return selection.primaryPriorityId;
+  return counts;
 }
 
-function toMisread(
-  state: RoomState,
-  prediction: PeerPrediction,
-): Misread | null {
-  const actualPriorityId = primaryPriorityForPlayer(
-    state,
-    prediction.targetPlayerId,
-  );
-
-  if (actualPriorityId === prediction.predictedPriorityId) {
-    return null;
+function highestThemeId(counts: Map<string, number>, fallbackId: string): string {
+  let winnerId = fallbackId;
+  let winnerCount = -1;
+  for (const theme of connectionThemes) {
+    const count = counts.get(theme.id) ?? 0;
+    if (count > winnerCount) {
+      winnerId = theme.id;
+      winnerCount = count;
+    }
   }
+  return winnerId;
+}
 
+export function selectInitialTheme(
+  activity: ActivityConfig,
+  cards: PreferenceCard[],
+): GroupTheme {
+  const fallback = connectionThemes[0];
+  if (!fallback) {
+    throw new Error("At least one connection theme is required");
+  }
+  const selected = themeById(highestThemeId(countThemeVotes(cards), fallback.id)) ?? fallback;
   return {
-    authorPlayerId: prediction.authorPlayerId,
-    targetPlayerId: prediction.targetPlayerId,
-    predictedPriorityId: prediction.predictedPriorityId,
-    actualPriorityId,
+    id: selected.id,
+    label: selected.label,
+    description: selected.description,
+    starter: selected.starters[activity.groupingMode],
   };
 }
 
-export function calculateReveal(state: RoomState): Reveal {
-  if (!state.groupSelection) {
-    throw new Error("Cannot calculate a reveal without a group selection");
+export function calculateGroupReveal(state: RoomState): GroupReveal {
+  if (!state.initialTheme) {
+    throw new Error("Cannot calculate a reveal before the conversation begins");
   }
 
-  const playersByPriority = new Map<string, Set<string>>();
-  for (const selection of Object.values(state.privateSelections)) {
-    for (const priorityId of new Set(
-      selection.choices.map((choice) => choice.priorityId),
-    )) {
-      const players = playersByPriority.get(priorityId) ?? new Set<string>();
-      players.add(selection.playerId);
-      playersByPriority.set(priorityId, players);
-    }
+  const actualThemeId = highestThemeId(
+    new Map(
+      connectionThemes.map((theme) => [
+        theme.id,
+        Object.values(state.reflectionVotes).filter((vote) => vote === theme.id).length,
+      ]),
+    ),
+    state.initialTheme.id,
+  );
+  const actualTheme = themeById(actualThemeId) ?? themeById(state.initialTheme.id);
+  if (!actualTheme) {
+    throw new Error("Unable to resolve actual connection theme");
   }
 
-  const largestGroup = Math.max(
-    ...[...playersByPriority.values()].map((players) => players.size),
-  );
-  const commonGroundPriorityIds = sortByScenarioOrder(
-    [...playersByPriority.entries()]
-      .filter(([, players]) => players.size === largestGroup)
-      .map(([priorityId]) => priorityId),
-    state.scenario.priorities,
-  );
-
-  const expressedPriorities = new Set(
-    state.groupSelection.choices.map((choice) => choice.priorityId),
-  );
-  const hiddenAgreementPriorityIds = sortByScenarioOrder(
-    [...playersByPriority.entries()]
-      .filter(
-        ([priorityId, players]) =>
-          players.size >= 2 && !expressedPriorities.has(priorityId),
-      )
-      .map(([priorityId]) => priorityId),
-    state.scenario.priorities,
-  );
-
-  const biggestMisread = Object.values(state.peerPredictions)
-    .map((prediction) => toMisread(state, prediction))
-    .find((misread): misread is Misread => misread !== null) ?? null;
+  const followUpCounts = new Map<string, number>();
+  for (const optionId of Object.values(state.followUpSelections)) {
+    followUpCounts.set(optionId, (followUpCounts.get(optionId) ?? 0) + 1);
+  }
+  const mutualFollowUps = [...followUpCounts.entries()]
+    .map(([optionId, participantCount]) => ({
+      option: followUpById(optionId),
+      participantCount,
+    }))
+    .filter(
+      (entry): entry is { option: NonNullable<typeof entry.option>; participantCount: number } =>
+        Boolean(entry.option) && !entry.option?.isOptOut && entry.participantCount >= 2,
+    )
+    .map(({ option, participantCount }) => ({
+      id: option.id,
+      label: option.label,
+      participantCount,
+    }));
 
   return {
-    commonGroundPriorityIds,
-    hiddenAgreementPriorityIds,
-    biggestMisread,
+    initialTheme: state.initialTheme,
+    actualTheme: {
+      id: actualTheme.id,
+      label: actualTheme.label,
+      description: actualTheme.description,
+    },
+    mutualFollowUps,
   };
 }

@@ -1,261 +1,225 @@
-# Pull Request Plan
+# Common Ground Implementation Plan
 
 ## Product Decision
 
-The implementation will focus on a single multiplayer social game engine rather than a full event-management platform.
+Common Ground is not a Jackbox-style decision game and it is not an
+event-logistics dashboard. It is a short, multiplayer connection loop for one
+small group at an event.
 
-The MVP thesis is:
+Its thesis is:
 
-> A shared decision can reveal how people understand themselves and one another.
+> The best way to reduce social friction is to help people move from predicted
+> similarity to an actual shared experience, then make the next step mutual.
 
-The critical path is:
+The build must demonstrate this complete path:
 
 ```text
-CREATE ROOM -> JOIN -> PRIVATE CHOICE -> GROUP CHOICE -> PREDICT -> REVEAL
+CREATE ACTIVITY -> JOIN -> PREFERENCE CARD -> CONVERSATION -> REFLECT -> CONTINUE
 ```
 
-Follow-up activity creation is a stretch feature and must not block the critical path.
+The room creator is the organizer/host and may also participate. A room is one
+table of two to four people. This keeps the prototype demoable without a
+database, a public dataset, or an unreliable AI matching claim.
 
-## Recommended Development Setup
+## MVP User Flow
 
-- Visual Studio Code for editing and debugging
-- Node.js 22.12 or newer
-- npm workspaces for dependency and script management
-- TypeScript in strict mode
-- React and Vite for the client
-- Express and Socket.IO for the realtime server
-- Shared Zod schemas for runtime validation
-- Vitest for unit and component tests
+### 1. Organizer creates an activity
 
-This stack supports a fast browser-based multiplayer demo without requiring a database, cloud account, mobile SDK, or game engine.
+The host supplies:
 
-## PR 1: Playable Realtime Vertical Slice
+- display name;
+- activity name;
+- event goal: `comfort`, `discovery`, or `continuation`;
+- grouping mode: `comfort`, `discovery`, or `balanced`.
 
-### Goal
+The host receives a short room code and waits for two to four people.
 
-Deliver one complete Stranded Island session that works across two to four browser clients.
+### 2. Participants join and set the tone
 
-### User-visible scope
+Every participant supplies a display name and a short preference card:
 
-- Organizer can create a room and receive a short code.
-- Players can join with a display name and room code.
-- Lobby shows connected players and host controls.
-- Host starts the scenario.
-- Players privately select three items and one priority for each item.
-- Host submits the group's final three items after discussion.
-- Players predict one other player's primary priority.
-- All clients see the same reveal screen.
-- The room can restart without restarting the server.
+- one to three discussion interests;
+- interaction style: `small-group` or `structured`;
+- connection preference: `breadth` or `depth`;
+- event intention: `casual`, `new-perspectives`, or `keep-in-touch`.
 
-### Engineering scope
+Only the participant and server see an individual card. The public room state
+exposes a submitted/not-submitted indicator, never another person’s answers.
 
-- npm workspace with `web`, `server`, and `shared` packages
-- shared TypeScript event and state definitions
-- in-memory room repository
-- Socket.IO event handlers and reconnection by temporary player token
-- server-authoritative phase transitions
-- local Stranded Island scenario fixture
-- deterministic reveal engine
-- responsive card-based interface
-- unit tests for room transitions and reveal calculations
-- one automated happy-path integration test if time permits
+### 3. The group receives an initial connection prompt
 
-The domain-first implementation begins with the deterministic harness described in [HARNESS_LOOP.md](HARNESS_LOOP.md). The realtime server and UI must reuse this engine rather than reimplementing game rules.
+When every connected participant has submitted, the server selects an
+anonymized initial theme and a conversation starter from local fixtures.
 
-The initial implementation keeps rooms in server memory. Browser refresh is supported through a session-scoped room token; server restart is intentionally treated as room expiration for the hackathon MVP.
+- **Comfort mode:** choose the strongest obvious overlap.
+- **Discovery mode:** choose a bridge theme that connects adjacent interests.
+- **Balanced mode:** choose a shared theme, then use a broader prompt.
 
-### Non-goals
+The UI shows a short facilitator prompt and a timer-free “talk together”
+screen. The app does not record conversation audio or text.
 
-- authentication or user accounts
-- persistent database storage
-- public matchmaking
-- chat or audio capture
-- AI-generated psychological analysis
-- multiple production-ready scenarios
-- complex organizer dashboards
-- automated group assignment
-- venue, equipment, or catering planning
+### 4. Participants reflect on actual common ground
 
-### Acceptance criteria
+After the conversation, each person privately chooses the topic that actually
+created energy or curiosity. The server aggregates votes and reveals only the
+winning group-level actual theme.
 
-- Two to four players can complete the entire flow without a page refresh.
-- A player's private selections are not visible to other players before the reveal.
-- Invalid actions are rejected by the server, including early phase transitions and excess selections.
-- Every connected client observes the same room phase and final group choice.
-- Reveal results are reproducible from stored round data.
-- Refreshing a client restores that player's current room when the server is still running.
-- `npm test` and `npm run build` pass from the repository root.
+```text
+We predicted: Games and Japanese pop culture
+You actually connected over: Creative game design
+```
 
-## PR 2: Event Framing and Scenario System
+The language describes one interaction, not a stable personality trait.
 
-### Goal
+### 5. Mutual continuation
 
-Show that the same interaction mechanic can support different real-world event contexts.
+Each person privately chooses one follow-up option:
 
-### Scope
+- coffee next week;
+- indie game night;
+- study or co-working session;
+- group chat;
+- not today.
 
-- scenario schema and scenario picker
-- two additional fixtures, such as Mars Mission and Design the Perfect City
-- organizer event-purpose selector
-- scenario-specific copy, items, priorities, and timer duration
-- QR code for room joining
-- facilitator instructions and phase prompts
-- accessibility and keyboard-navigation pass
+Only options selected by at least two people are revealed. Individual choices,
+including a decision not to continue, remain private.
 
-### Acceptance criteria
-
-- A scenario can be added through JSON without changing game components.
-- Organizer can select a scenario before room creation.
-- Player flow remains identical across scenarios.
-- The room join URL can be opened from a generated QR code.
-
-## PR 3: Connection Continuation
-
-### Goal
-
-Reduce the intention-to-action gap after a successful conversation.
-
-### Scope
-
-- anonymous follow-up interest selection
-- reveal only when at least two players choose the same follow-up
-- suggested follow-up formats such as coffee, game night, or another short activity
-- privacy-safe consent copy
-- organizer summary containing aggregate outcomes only
-
-### Acceptance criteria
-
-- Individual follow-up choices remain private unless a mutual match exists.
-- The organizer cannot see individual private priorities or predictions.
-- A mutual follow-up produces a clear, optional next action.
-
-## Core Domain Model
+## Domain Model
 
 ```ts
 type RoomPhase =
   | "lobby"
-  | "private-choice"
-  | "group-choice"
-  | "peer-prediction"
+  | "preferences"
+  | "conversation"
+  | "reflection"
+  | "follow-up"
   | "reveal";
 
-type Player = {
-  id: string;
-  displayName: string;
-  isHost: boolean;
-  connected: boolean;
+type EventGoal = "comfort" | "discovery" | "continuation";
+type GroupingMode = "comfort" | "discovery" | "balanced";
+
+type PreferenceCard = {
+  interestIds: string[];
+  interactionStyle?: "small-group" | "structured";
+  connectionStyle?: "breadth" | "depth";
+  eventIntent?: "casual" | "new-perspectives" | "keep-in-touch";
 };
 
-type PrivateSelection = {
-  playerId: string;
-  choices: Array<{ itemId: string; priorityId: string }>;
-  primaryPriorityId: string;
-};
-
-type PeerPrediction = {
-  authorPlayerId: string;
-  targetPlayerId: string;
-  predictedPriorityId: string;
-};
-
-type Scenario = {
-  id: string;
+type ActivityConfig = {
   title: string;
-  prompt: string;
-  items: Array<{ id: string; label: string; emoji?: string }>;
-  priorities: Array<{ id: string; label: string }>;
-  privateSelectionCount: number;
-  groupSelectionCount: number;
-  discussionSeconds: number;
+  eventGoal: EventGoal;
+  groupingMode: GroupingMode;
+};
+
+type GroupTheme = {
+  id: string;
+  label: string;
+  starter: string;
+};
+
+type RoomState = {
+  phase: RoomPhase;
+  activity: ActivityConfig;
+  initialTheme?: GroupTheme;
+  actualThemeId?: string;
+  // Private preferences, reflections, and follow-ups remain server-only.
 };
 ```
 
-## Realtime Event Contract
+## Realtime Contract
 
 ### Client to server
 
-- `room:create`
-- `room:join`
-- `room:resume`
-- `game:start`
-- `private-choice:submit`
-- `group-choice:submit`
-- `peer-prediction:submit`
-- `game:restart`
+- `room.create` — display name plus activity configuration
+- `room.join` — display name plus room code
+- `room.resume` — temporary room/player token after refresh
+- `activity.start` — host starts the preference card stage
+- `preferences.submit` — participant’s private card
+- `conversation.begin` — host opens the initial group prompt
+- `reflection.submit` — participant’s private actual-connection vote
+- `follow-up.submit` — participant’s private follow-up choice
+- `activity.restart` — host creates a fresh round in the same room
 
 ### Server to client
 
-- `room:state`
-- `room:error`
-- `phase:changed`
-- `submission:accepted`
-- `reveal:ready`
+- `room.joined`
+- `room.state` — privacy-safe public view
+- `room.error`
 
-All event payloads must be validated against shared schemas. Clients request actions; the server owns room state and determines whether a transition is valid.
+All client payloads must be Zod-validated. The server owns phase transitions,
+aggregate calculations, and privacy boundaries.
 
-## Reveal Rules for PR 1
+## Deterministic Matching and Reveal Rules
 
-The reveal engine must remain deterministic and testable.
+There is no external recommendation model in the MVP. Local fixtures map an
+interest to one or more broad themes and starter prompts.
 
-1. Count every priority selected during private choice.
-2. Select the most frequent priority as common ground; report a tie when needed.
-3. Find priorities shared by at least two players but absent from the submitted group choice metadata as hidden agreement.
-4. Compare peer predictions with each target player's private priorities.
-5. Report the target with the greatest number of incorrect predictions as the largest misread.
-6. Use neutral language and avoid stable personality claims.
+1. Count a theme once per participant card, even if they choose several
+   interests that map to it.
+2. Select the highest-count eligible theme; break ties deterministically by
+   fixture order.
+3. Select the prompt variant using the activity goal and grouping mode.
+4. Count each participant’s reflection vote and reveal the highest-count theme
+   as actual common ground.
+5. Count follow-up choices; reveal only options with at least two selections.
+6. Never put an individual preference, reflection, or follow-up choice in the
+   public room view.
 
-## Privacy and Safety Requirements
+## Delivery Steps
 
-- Use display names only; do not request legal names, ethnicity, MBTI, or mental-health information.
-- Keep private selections server-side until the reveal phase.
-- Do not record conversation audio or transcripts.
-- Do not infer personality, diagnosis, or cultural identity.
-- Explain that insights describe one game session, not a player's character.
-- Delete in-memory room data when the room expires or the process stops.
+### Step 1 — Product contract and docs
 
-## Two-Person Work Split
+- Rewrite `README.md` around `MATCH -> CONNECT -> UNDERSTAND -> CONTINUE`.
+- Replace this plan and the old game-specific acceptance criteria.
 
-### Developer A: Experience and psychology
+### Step 2 — Shared domain and deterministic harness
 
-- scenario wording and priority taxonomy
-- player flow and facilitator prompts
-- reveal language and interpretation boundaries
-- accessibility, consent, and cross-cultural review
-- user testing and demo narration
+- Remove the Stranded Island scenario and private-choice/prediction types.
+- Add activity configuration, preference card, interest/theme fixtures,
+  aggregation, mutual follow-up, and privacy invariants.
+- Replace the harness with a two-person happy path.
+- Add unit tests for tie-breaking, anonymity, and mutual-only follow-ups.
 
-### Developer B: Realtime product implementation
+### Step 3 — Realtime server
 
-- repository and build setup
-- room state machine and Socket.IO events
-- React screens and shared client state
-- reveal algorithm implementation
-- tests, deployment, and demo reliability
+- Replace old Socket.IO actions with the event flow above.
+- Maintain room-code joining and refresh recovery.
+- Ensure every outgoing room state is a public projection.
 
-Both developers should review the reveal output and run the full multiplayer demo before merging.
+### Step 4 — Organizer and participant UI
 
-## Suggested Implementation Order
+- Organizer creation form: activity title, event goal, and grouping mode.
+- Participant join form and preference card.
+- Lobby, conversation prompt, private reflection, private continuation, and
+  group reveal screens.
+- Explain what is private before each sensitive action.
 
-1. Define shared scenario and room-state types.
-2. Implement and test the room state machine without a UI.
-3. Add create/join lobby screens.
-4. Add private choice and server submission.
-5. Add host-led group choice.
-6. Add peer prediction.
-7. Implement reveal calculations and screen.
-8. Add reconnect and restart behavior.
-9. Improve responsive layout and run multi-device testing.
-10. Add one stretch feature only after the critical path is stable.
+### Step 5 — Demo verification
 
-## Demo Reliability Checklist
+- Test locally in two to four tabs.
+- Test from phones through Tailscale.
+- Verify that no individual answers appear in another tab.
+- Rehearse one three-minute story: create, join, connect, reflect, continue.
 
-- Prepare one host laptop and two participant phones or browser windows.
-- Seed an optional demo room for recovery if live joining fails.
-- Avoid dependencies on external datasets or AI APIs.
-- Keep the reveal deterministic so the expected story can be rehearsed.
-- Test on the venue network and one mobile hotspot.
-- Verify timers, reconnect behavior, and mobile viewport sizes.
-- Keep a screen recording as a fallback while demonstrating the live build first.
+## Non-goals
 
-## Definition of Done
+- automated table assignment for a large attendee list;
+- accounts, database persistence, or analytics;
+- MBTI, ethnicity, diagnosis, or personality inference;
+- audio capture, transcripts, or conversation surveillance;
+- venue, catering, schedule, or equipment management;
+- calendar invites or direct group-chat creation;
+- external public datasets or opaque AI matching.
 
-The MVP is complete when a judge can join a room, make a private choice, negotiate with the group, predict another player, and receive a meaningful reveal within three minutes.
+## Acceptance Criteria
+
+- Two to four people can complete the full flow in one room without refresh.
+- The host can create an activity and select its goal and grouping mode.
+- Individual preference cards are never exposed to other participants or the
+  organizer.
+- All clients receive the same anonymized initial and actual group themes.
+- A follow-up is shown only when at least two people selected it.
+- Invalid actions and out-of-phase submissions are rejected by the server.
+- Refreshing a client restores the participant’s active room while the server
+  remains running.
+- `npm run harness`, `npm test`, `npm run typecheck`, and `npm run build` pass.

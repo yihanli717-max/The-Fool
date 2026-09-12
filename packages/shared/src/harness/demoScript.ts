@@ -1,93 +1,54 @@
 import type { Player, RoomAction, RoomState } from "../domain.ts";
 import { applyAction, createRoom, projectPublicRoom } from "../engine.ts";
 import { assertRoomInvariants } from "../invariants.ts";
-import { strandedIsland } from "../scenarios/strandedIsland.ts";
 
 const players: Player[] = [
   { id: "alex", displayName: "Alex", isHost: true, connected: true },
   { id: "mei", displayName: "Mei", isHost: false, connected: true },
   { id: "sam", displayName: "Sam", isHost: false, connected: true },
-  { id: "priya", displayName: "Priya", isHost: false, connected: true },
 ];
 
 export const happyPathActions: RoomAction[] = [
-  ...players.slice(1).map(
-    (player): RoomAction => ({ type: "player.join", player }),
-  ),
-  { type: "game.start", actorPlayerId: "alex" },
+  ...players.slice(1).map((player): RoomAction => ({ type: "player.join", player })),
+  { type: "activity.start", actorPlayerId: "alex" },
   {
-    type: "private-choice.submit",
+    type: "preferences.submit",
     actorPlayerId: "alex",
-    primaryPriorityId: "rescue",
-    choices: [
-      { itemId: "water", priorityId: "survival" },
-      { itemId: "radio", priorityId: "rescue" },
-      { itemId: "rope", priorityId: "long-term" },
-    ],
+    card: {
+      interestIds: ["games", "anime", "tech"],
+      interactionStyle: "small-group",
+      connectionStyle: "depth",
+      eventIntent: "new-perspectives",
+    },
   },
   {
-    type: "private-choice.submit",
+    type: "preferences.submit",
     actorPlayerId: "mei",
-    primaryPriorityId: "helping",
-    choices: [
-      { itemId: "medicine", priorityId: "helping" },
-      { itemId: "water", priorityId: "survival" },
-      { itemId: "food", priorityId: "comfort" },
-    ],
+    card: {
+      interestIds: ["anime", "art", "food"],
+      interactionStyle: "small-group",
+      connectionStyle: "depth",
+      eventIntent: "keep-in-touch",
+    },
   },
   {
-    type: "private-choice.submit",
+    type: "preferences.submit",
     actorPlayerId: "sam",
-    primaryPriorityId: "rescue",
-    choices: [
-      { itemId: "radio", priorityId: "rescue" },
-      { itemId: "lighter", priorityId: "survival" },
-      { itemId: "medicine", priorityId: "helping" },
-    ],
+    card: {
+      interestIds: ["games", "art", "music"],
+      interactionStyle: "structured",
+      connectionStyle: "breadth",
+      eventIntent: "casual",
+    },
   },
-  {
-    type: "private-choice.submit",
-    actorPlayerId: "priya",
-    primaryPriorityId: "long-term",
-    choices: [
-      { itemId: "map", priorityId: "long-term" },
-      { itemId: "rope", priorityId: "long-term" },
-      { itemId: "medicine", priorityId: "helping" },
-    ],
-  },
-  {
-    type: "group-choice.submit",
-    actorPlayerId: "alex",
-    choices: [
-      { itemId: "water", priorityId: "survival" },
-      { itemId: "radio", priorityId: "rescue" },
-      { itemId: "medicine", priorityId: "helping" },
-    ],
-  },
-  {
-    type: "peer-prediction.submit",
-    actorPlayerId: "alex",
-    targetPlayerId: "mei",
-    predictedPriorityId: "comfort",
-  },
-  {
-    type: "peer-prediction.submit",
-    actorPlayerId: "mei",
-    targetPlayerId: "sam",
-    predictedPriorityId: "rescue",
-  },
-  {
-    type: "peer-prediction.submit",
-    actorPlayerId: "sam",
-    targetPlayerId: "priya",
-    predictedPriorityId: "rescue",
-  },
-  {
-    type: "peer-prediction.submit",
-    actorPlayerId: "priya",
-    targetPlayerId: "alex",
-    predictedPriorityId: "survival",
-  },
+  { type: "conversation.begin", actorPlayerId: "alex" },
+  { type: "reflection.open", actorPlayerId: "alex" },
+  { type: "reflection.submit", actorPlayerId: "alex", themeId: "creative-play" },
+  { type: "reflection.submit", actorPlayerId: "mei", themeId: "creative-play" },
+  { type: "reflection.submit", actorPlayerId: "sam", themeId: "ideas-impact" },
+  { type: "follow-up.submit", actorPlayerId: "alex", followUpOptionId: "game-night" },
+  { type: "follow-up.submit", actorPlayerId: "mei", followUpOptionId: "game-night" },
+  { type: "follow-up.submit", actorPlayerId: "sam", followUpOptionId: "not-today" },
 ];
 
 export type HarnessTraceEntry = {
@@ -99,17 +60,15 @@ export type HarnessTraceEntry = {
 
 function initialState(): RoomState {
   const [host] = players;
-  if (!host) {
-    throw new Error("Harness requires a host fixture");
-  }
+  if (!host) throw new Error("Harness requires a host fixture");
   return createRoom(
     { id: "demo-room", code: "CG26" },
+    { id: host.id, displayName: host.displayName, connected: host.connected },
     {
-      id: host.id,
-      displayName: host.displayName,
-      connected: host.connected,
+      title: "Hackathon mixer",
+      eventGoal: "discovery",
+      groupingMode: "balanced",
     },
-    strandedIsland,
   );
 }
 
@@ -124,12 +83,14 @@ export function runHappyPathHarness(): {
   happyPathActions.forEach((action, index) => {
     state = applyAction(state, action);
     assertRoomInvariants(state);
-
     const publicView = projectPublicRoom(state);
-    if ("privateSelections" in publicView || "peerPredictions" in publicView) {
-      throw new Error("Public room projection leaked private session data");
+    if (
+      "preferenceCards" in publicView ||
+      "reflectionVotes" in publicView ||
+      "followUpSelections" in publicView
+    ) {
+      throw new Error("Public room projection leaked a private response");
     }
-
     trace.push({
       step: index + 1,
       action: action.type,
@@ -142,6 +103,5 @@ export function runHappyPathHarness(): {
   if (JSON.stringify(replayed) !== JSON.stringify(state)) {
     throw new Error("Action replay was not deterministic");
   }
-
   return { finalState: state, trace };
 }

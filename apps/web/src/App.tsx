@@ -1,18 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 
-import type {
-  ItemChoice,
-  PublicRoomView,
-  Reveal,
-  RoomPhase,
+import {
+  connectionThemes,
+  followUpOptions,
+  interests,
+  type ActivityConfig,
+  type ConnectionStyle,
+  type EventGoal,
+  type EventIntent,
+  type GroupReveal,
+  type GroupingMode,
+  type InteractionStyle,
+  type Player,
+  type PreferenceCard,
+  type PublicRoomView,
+  type RoomPhase,
 } from "@common-ground/shared";
 
 import { socket } from "./socket.ts";
 
-type Identity = {
-  roomCode: string;
-  playerId: string;
-};
+type Identity = { roomCode: string; playerId: string };
 
 const identityKey = "common-ground.identity";
 
@@ -31,16 +38,15 @@ function saveIdentity(identity: Identity): void {
   sessionStorage.setItem(identityKey, JSON.stringify(identity));
 }
 
-function priorityLabel(room: PublicRoomView, id: string): string {
-  return room.scenario.priorities.find((priority) => priority.id === id)?.label ?? id;
-}
-
-function playerName(room: PublicRoomView, id: string): string {
-  return room.players.find((player) => player.id === id)?.displayName ?? "A player";
-}
-
 function phaseLabel(phase: RoomPhase): string {
-  return phase.replaceAll("-", " ");
+  return {
+    lobby: "Match",
+    preferences: "Match",
+    conversation: "Connect",
+    reflection: "Understand",
+    "follow-up": "Continue",
+    reveal: "Your common ground",
+  }[phase];
 }
 
 export function App() {
@@ -69,11 +75,11 @@ export function App() {
     };
     const onRoomState = (nextRoom: PublicRoomView) => setRoom(nextRoom);
     const onRoomError = (message: string) => {
-      if (message === "Room session not found" || message === "This room no longer exists") {
+      if (message === "Room session not found" || message === "This activity room no longer exists") {
         sessionStorage.removeItem(identityKey);
         setIdentity(null);
         setRoom(null);
-        setError("This local demo room has expired. Create or join a room to continue.");
+        setError("This local room has expired. Create or join an activity to continue.");
         return;
       }
       setError(message);
@@ -84,7 +90,6 @@ export function App() {
     socket.on("room.joined", onJoined);
     socket.on("room.state", onRoomState);
     socket.on("room.error", onRoomError);
-
     if (socket.connected) onConnect();
     return () => {
       socket.off("connect", onConnect);
@@ -104,6 +109,7 @@ export function App() {
     return (
       <main className="app-shell">
         <Header connected={connected} />
+        {error ? <p className="error-banner">{error}</p> : null}
         <JoinScreen error={error} />
       </main>
     );
@@ -111,39 +117,38 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <Header connected={connected} roomCode={room.code} />
+      <Header connected={connected} roomCode={room.code} activityTitle={room.activity.title} />
       {error ? <p className="error-banner">{error}</p> : null}
-      <section className="game-frame">
-        <div className="phase-line">
-          <span>Room update {room.revision}</span>
-          <strong>{phaseLabel(room.phase)}</strong>
-        </div>
-        {room.phase === "lobby" ? (
-          <Lobby room={room} currentPlayerId={currentPlayer.id} />
-        ) : null}
-        {room.phase === "private-choice" ? (
-          <PrivateChoice room={room} currentPlayerId={currentPlayer.id} />
-        ) : null}
-        {room.phase === "group-choice" ? (
-          <GroupChoice room={room} currentPlayer={currentPlayer} />
-        ) : null}
-        {room.phase === "peer-prediction" ? (
-          <PeerPrediction room={room} currentPlayerId={currentPlayer.id} />
-        ) : null}
+      <section className="experience-frame">
+        <Progress phase={room.phase} />
+        {room.phase === "lobby" ? <Lobby room={room} currentPlayer={currentPlayer} /> : null}
+        {room.phase === "preferences" ? <PreferenceStage room={room} currentPlayer={currentPlayer} /> : null}
+        {room.phase === "conversation" ? <Conversation room={room} currentPlayer={currentPlayer} /> : null}
+        {room.phase === "reflection" ? <Reflection room={room} currentPlayerId={currentPlayer.id} /> : null}
+        {room.phase === "follow-up" ? <FollowUp room={room} currentPlayerId={currentPlayer.id} /> : null}
         {room.phase === "reveal" && room.reveal ? (
-          <RevealScreen room={room} reveal={room.reveal} currentPlayer={currentPlayer} />
+          <RevealScreen reveal={room.reveal} currentPlayer={currentPlayer} />
         ) : null}
       </section>
     </main>
   );
 }
 
-function Header({ connected, roomCode }: { connected: boolean; roomCode?: string }) {
+function Header({
+  connected,
+  roomCode,
+  activityTitle,
+}: {
+  connected: boolean;
+  roomCode?: string;
+  activityTitle?: string;
+}) {
   return (
     <header className="topbar">
       <div>
-        <p className="eyebrow">A multiplayer social experiment</p>
+        <p className="eyebrow">A multiplayer connection experience</p>
         <h1>Common Ground</h1>
+        {activityTitle ? <p className="activity-title">{activityTitle}</p> : null}
       </div>
       <div className="status-stack">
         {roomCode ? <span className="room-code">Room {roomCode}</span> : null}
@@ -157,15 +162,26 @@ function Header({ connected, roomCode }: { connected: boolean; roomCode?: string
 
 function JoinScreen({ error }: { error: string | null }) {
   const [displayName, setDisplayName] = useState("");
+  const [activityTitle, setActivityTitle] = useState("Hackathon mixer");
+  const [eventGoal, setEventGoal] = useState<EventGoal>("discovery");
+  const [groupingMode, setGroupingMode] = useState<GroupingMode>("balanced");
   const [roomCode, setRoomCode] = useState("");
-  const canSubmit = displayName.trim().length > 0;
+  const hasName = displayName.trim().length > 0;
+  const canCreate = hasName && activityTitle.trim().length > 0;
+  const canJoin = hasName && roomCode.trim().length >= 4;
 
   const createRoom = () => {
-    if (!canSubmit) return;
-    socket.emit("room.create", { displayName: displayName.trim() });
+    if (!canCreate) return;
+    const activity: ActivityConfig = {
+      title: activityTitle.trim(),
+      eventGoal,
+      groupingMode,
+    };
+    socket.emit("room.create", { displayName: displayName.trim(), activity });
   };
+
   const joinRoom = () => {
-    if (!canSubmit || roomCode.trim().length < 4) return;
+    if (!canJoin) return;
     socket.emit("room.join", {
       displayName: displayName.trim(),
       roomCode: roomCode.trim().toUpperCase(),
@@ -175,12 +191,17 @@ function JoinScreen({ error }: { error: string | null }) {
   return (
     <section className="join-layout">
       <div className="hero-copy">
-        <p className="eyebrow">MEANT → EXPRESSED → HEARD</p>
-        <h2>Discover what your group values by making a decision together.</h2>
+        <p className="eyebrow">MATCH → CONNECT → UNDERSTAND → CONTINUE</p>
+        <h2>Turn proximity into connection.</h2>
         <p>
-          Make a private choice, negotiate a shared answer, then see where your
-          group found common ground—and where it misunderstood one another.
+          Common Ground gives a small group a gentle way to start talking, discover what
+          actually clicked, and make a next step feel less awkward.
         </p>
+        <div className="principle-list">
+          <span>Private preferences</span>
+          <span>Shared themes</span>
+          <span>Mutual next steps</span>
+        </div>
       </div>
       <form className="join-card" onSubmit={(event) => event.preventDefault()}>
         <label>
@@ -192,10 +213,31 @@ function JoinScreen({ error }: { error: string | null }) {
             placeholder="e.g. Mei"
           />
         </label>
-        <button type="button" onClick={createRoom} disabled={!canSubmit}>
-          Create a room
-        </button>
-        <div className="divider"><span>or join a room</span></div>
+        <div className="form-divider"><span>Create an activity</span></div>
+        <label>
+          Activity name
+          <input value={activityTitle} onChange={(event) => setActivityTitle(event.target.value)} maxLength={60} />
+        </label>
+        <div className="field-row">
+          <label>
+            Event goal
+            <select value={eventGoal} onChange={(event) => setEventGoal(event.target.value as EventGoal)}>
+              <option value="comfort">Meet comfortably</option>
+              <option value="discovery">Discover perspectives</option>
+              <option value="continuation">Form a next step</option>
+            </select>
+          </label>
+          <label>
+            Grouping mode
+            <select value={groupingMode} onChange={(event) => setGroupingMode(event.target.value as GroupingMode)}>
+              <option value="comfort">Comfort</option>
+              <option value="discovery">Discovery</option>
+              <option value="balanced">Balanced</option>
+            </select>
+          </label>
+        </div>
+        <button type="button" onClick={createRoom} disabled={!canCreate}>Create activity room</button>
+        <div className="form-divider"><span>or join a room</span></div>
         <label>
           Room code
           <input
@@ -205,176 +247,254 @@ function JoinScreen({ error }: { error: string | null }) {
             placeholder="ABCDE"
           />
         </label>
-        <button type="button" className="secondary" onClick={joinRoom} disabled={!canSubmit || roomCode.trim().length < 4}>
-          Join room
-        </button>
+        <button type="button" className="secondary" onClick={joinRoom} disabled={!canJoin}>Join room</button>
         {error ? <p className="inline-error">{error}</p> : null}
       </form>
     </section>
   );
 }
 
-function Lobby({ room, currentPlayerId }: { room: PublicRoomView; currentPlayerId: string }) {
-  const currentPlayer = room.players.find((player) => player.id === currentPlayerId);
-  const isHost = currentPlayer?.isHost ?? false;
+function Progress({ phase }: { phase: RoomPhase }) {
+  const activeIndex = ["lobby", "preferences", "conversation", "reflection", "follow-up", "reveal"].indexOf(phase);
+  const steps = ["Match", "Connect", "Understand", "Continue"];
+  const completedByStep = [1, 2, 3, 5];
+  return (
+    <div className="progress" aria-label={`Current stage: ${phaseLabel(phase)} `}>
+      {steps.map((step, index) => (
+        <span className={activeIndex >= (completedByStep[index] ?? Infinity) ? "progress-step active" : "progress-step"} key={step}>
+          {step}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function Lobby({ room, currentPlayer }: { room: PublicRoomView; currentPlayer: Player }) {
+  const isHost = currentPlayer.isHost;
   return (
     <section className="center-stage">
-      <p className="eyebrow">Lobby</p>
-      <h2>Invite 2–4 people to join</h2>
-      <p className="lead">Share room code <strong>{room.code}</strong>. The host can begin once at least two people are here.</p>
-      <div className="player-grid">
-        {room.players.map((player) => (
-          <article className="player-chip" key={player.id}>
-            <span className={player.connected ? "presence present" : "presence away"} />
-            <strong>{player.displayName}</strong>
-            {player.isHost ? <small>host</small> : null}
-          </article>
-        ))}
+      <p className="eyebrow">Match · {room.activity.groupingMode} mode</p>
+      <h2>Set the table for a real conversation.</h2>
+      <p className="lead">Share room code <strong>{room.code}</strong>. The host can begin once two to four people are here.</p>
+      <div className="activity-summary">
+        <span>Goal</span><strong>{goalLabel(room.activity.eventGoal)}</strong>
+        <span>Mode</span><strong>{room.activity.groupingMode}</strong>
       </div>
+      <PlayerGrid players={room.players} />
       {isHost ? (
-        <button onClick={() => socket.emit("game.start")} disabled={room.players.length < 2}>
-          Start Stranded Island
+        <button onClick={() => socket.emit("activity.start")} disabled={room.players.length < 2}>
+          Start the preference card
         </button>
-      ) : (
-        <p className="waiting">Waiting for the host to begin.</p>
-      )}
+      ) : <p className="waiting">Waiting for the host to begin.</p>}
     </section>
   );
 }
 
-function ChoiceBoard({
-  room,
-  choices,
-  setChoices,
-  primaryPriorityId,
-  setPrimaryPriorityId,
-}: {
-  room: PublicRoomView;
-  choices: ItemChoice[];
-  setChoices: (choices: ItemChoice[]) => void;
-  primaryPriorityId: string;
-  setPrimaryPriorityId: (priorityId: string) => void;
-}) {
-  const toggleItem = (itemId: string) => {
-    const existing = choices.find((choice) => choice.itemId === itemId);
-    if (existing) {
-      setChoices(choices.filter((choice) => choice.itemId !== itemId));
-      return;
-    }
-    if (choices.length >= room.scenario.privateSelectionCount) return;
-    setChoices([...choices, { itemId, priorityId: room.scenario.priorities[0]?.id ?? "" }]);
-  };
+function PlayerGrid({ players }: { players: Player[] }) {
+  return (
+    <div className="player-grid">
+      {players.map((player) => (
+        <article className="player-chip" key={player.id}>
+          <span className={player.connected ? "presence present" : "presence away"} />
+          <strong>{player.displayName}</strong>
+          {player.isHost ? <small>host</small> : null}
+        </article>
+      ))}
+    </div>
+  );
+}
 
-  const updateReason = (itemId: string, priorityId: string) => {
-    setChoices(choices.map((choice) => choice.itemId === itemId ? { ...choice, priorityId } : choice));
+function PreferenceStage({ room, currentPlayer }: { room: PublicRoomView; currentPlayer: Player }) {
+  const submitted = room.preferenceSubmissionPlayerIds.includes(currentPlayer.id);
+  const everyoneSubmitted = room.preferenceSubmissionPlayerIds.length === room.players.length;
+  return (
+    <section>
+      <p className="eyebrow">Match · private preference card</p>
+      <h2>Give your group a gentle starting point.</h2>
+      <p className="lead">Your individual answers stay private. The group will only see an anonymized shared theme.</p>
+      {submitted ? (
+        <Waiting message="Your card is private and saved. Waiting for the group." />
+      ) : (
+        <PreferenceCard />
+      )}
+      <SubmissionStatus submitted={room.preferenceSubmissionPlayerIds.length} total={room.players.length} />
+      {everyoneSubmitted ? (
+        currentPlayer.isHost ? (
+          <button onClick={() => socket.emit("conversation.begin")}>Reveal our conversation prompt</button>
+        ) : <p className="waiting">Everyone is ready. The host will reveal your group prompt.</p>
+      ) : null}
+    </section>
+  );
+}
+
+function PreferenceCard() {
+  const [interestIds, setInterestIds] = useState<string[]>([]);
+  const [interactionStyle, setInteractionStyle] = useState<InteractionStyle | "">("");
+  const [connectionStyle, setConnectionStyle] = useState<ConnectionStyle | "">("");
+  const [eventIntent, setEventIntent] = useState<EventIntent | "">("");
+
+  const toggleInterest = (interestId: string) => {
+    if (interestIds.includes(interestId)) {
+      setInterestIds(interestIds.filter((id) => id !== interestId));
+    } else if (interestIds.length < 3) {
+      setInterestIds([...interestIds, interestId]);
+    }
+  };
+  const submit = () => {
+    const card: PreferenceCard = {
+      interestIds,
+      ...(interactionStyle ? { interactionStyle } : {}),
+      ...(connectionStyle ? { connectionStyle } : {}),
+      ...(eventIntent ? { eventIntent } : {}),
+    };
+    socket.emit("preferences.submit", { card });
   };
 
   return (
-    <>
-      <div className="selection-count">{choices.length} / {room.scenario.privateSelectionCount} selected</div>
-      <div className="item-grid">
-        {room.scenario.items.map((item) => {
-          const choice = choices.find((candidate) => candidate.itemId === item.id);
+    <div className="private-card">
+      <div className="section-heading">
+        <div><h3>What would you be happy to discuss?</h3><p>Choose up to three. Skipping is okay.</p></div>
+        <span>{interestIds.length} / 3</span>
+      </div>
+      <div className="interest-grid">
+        {interests.map((interest) => {
+          const selected = interestIds.includes(interest.id);
           return (
-            <article className={choice ? "item-card selected" : "item-card"} key={item.id}>
-              <button className="item-toggle" onClick={() => toggleItem(item.id)}>
-                <span className="item-emoji">{item.emoji}</span>
-                <span>{item.label}</span>
-              </button>
-              {choice ? (
-                <label className="reason-select">
-                  Why this item?
-                  <select value={choice.priorityId} onChange={(event) => updateReason(item.id, event.target.value)}>
-                    {room.scenario.priorities.map((priority) => <option value={priority.id} key={priority.id}>{priority.label}</option>)}
-                  </select>
-                </label>
-              ) : null}
-            </article>
+            <button
+              type="button"
+              className={selected ? "interest-card selected" : "interest-card"}
+              key={interest.id}
+              onClick={() => toggleInterest(interest.id)}
+              aria-pressed={selected}
+            >
+              <span>{interest.emoji}</span>{interest.label}
+            </button>
           );
         })}
       </div>
-      <label className="primary-select">
-        What matters most to you in this round?
-        <select value={primaryPriorityId} onChange={(event) => setPrimaryPriorityId(event.target.value)}>
-          {room.scenario.priorities.map((priority) => <option value={priority.id} key={priority.id}>{priority.label}</option>)}
-        </select>
-      </label>
-    </>
+      <div className="field-row preferences-row">
+        <label>
+          I would rather…
+          <select value={interactionStyle} onChange={(event) => setInteractionStyle(event.target.value as InteractionStyle | "")}>
+            <option value="">Skip</option><option value="small-group">Talk in a small group</option><option value="structured">Use a structured activity</option>
+          </select>
+        </label>
+        <label>
+          Today I hope to…
+          <select value={connectionStyle} onChange={(event) => setConnectionStyle(event.target.value as ConnectionStyle | "")}>
+            <option value="">Skip</option><option value="breadth">Meet several people</option><option value="depth">Know a few people more deeply</option>
+          </select>
+        </label>
+        <label>
+          My event intention
+          <select value={eventIntent} onChange={(event) => setEventIntent(event.target.value as EventIntent | "")}>
+            <option value="">Skip</option><option value="casual">Have a relaxed conversation</option><option value="new-perspectives">Hear a new perspective</option><option value="keep-in-touch">Find people to keep in touch with</option>
+          </select>
+        </label>
+      </div>
+      <button type="button" onClick={submit}>Save my private card</button>
+    </div>
   );
 }
 
-function PrivateChoice({ room, currentPlayerId }: { room: PublicRoomView; currentPlayerId: string }) {
-  const [choices, setChoices] = useState<ItemChoice[]>([]);
-  const [primaryPriorityId, setPrimaryPriorityId] = useState(room.scenario.priorities[0]?.id ?? "");
-  const submitted = room.privateSubmissionPlayerIds.includes(currentPlayerId);
-  const submit = () => socket.emit("private-choice.submit", { choices, primaryPriorityId });
+function Conversation({ room, currentPlayer }: { room: PublicRoomView; currentPlayer: Player }) {
+  const theme = room.initialTheme;
+  if (!theme) return null;
+  return (
+    <section className="conversation-screen">
+      <p className="eyebrow">Connect · an anonymized starting point</p>
+      <h2>Your table may connect through <em>{theme.label}.</em></h2>
+      <p className="lead">No one’s individual preferences are displayed. Use this as an invitation, not a label.</p>
+      <article className="starter-card">
+        <span>Conversation starter</span>
+        <strong>“{theme.starter}”</strong>
+        <p>Take a few minutes to talk. Notice what actually creates energy or curiosity.</p>
+      </article>
+      {currentPlayer.isHost ? (
+        <button onClick={() => socket.emit("reflection.open")}>Move to a private reflection</button>
+      ) : <p className="waiting">Talk together. The host will open a short private reflection next.</p>}
+    </section>
+  );
+}
 
+function Reflection({ room, currentPlayerId }: { room: PublicRoomView; currentPlayerId: string }) {
+  const [themeId, setThemeId] = useState(room.initialTheme?.id ?? connectionThemes[0]?.id ?? "");
+  const submitted = room.reflectionSubmissionPlayerIds.includes(currentPlayerId);
   return (
     <section>
-      <p className="eyebrow">Private choice</p>
-      <h2>{room.scenario.title}</h2>
-      <p className="lead">{room.scenario.prompt} Your answers remain private until the final reveal.</p>
-      {submitted ? <Waiting message="Your private choice is saved. Waiting for the group." /> : <><ChoiceBoard room={room} choices={choices} setChoices={setChoices} primaryPriorityId={primaryPriorityId} setPrimaryPriorityId={setPrimaryPriorityId} /><button onClick={submit} disabled={choices.length !== room.scenario.privateSelectionCount}>Lock in my choices</button></>}
+      <p className="eyebrow">Understand · private reflection</p>
+      <h2>What did your group actually click on?</h2>
+      <p className="lead">Pick the theme that created the most curiosity or energy. Your vote is private; only the group-level result will appear.</p>
+      {submitted ? <Waiting message="Your reflection is saved. Waiting for the group." /> : (
+        <>
+          <div className="theme-grid">
+            {connectionThemes.map((theme) => (
+              <button type="button" key={theme.id} className={themeId === theme.id ? "theme-card selected" : "theme-card"} onClick={() => setThemeId(theme.id)}>
+                <strong>{theme.label}</strong><span>{theme.description}</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => socket.emit("reflection.submit", { themeId })}>Save my reflection</button>
+        </>
+      )}
+      <SubmissionStatus submitted={room.reflectionSubmissionPlayerIds.length} total={room.players.length} />
     </section>
   );
 }
 
-function GroupChoice({ room, currentPlayer }: { room: PublicRoomView; currentPlayer: { id: string; isHost: boolean } }) {
-  const [choices, setChoices] = useState<ItemChoice[]>([]);
-  const [primaryPriorityId, setPrimaryPriorityId] = useState(room.scenario.priorities[0]?.id ?? "");
-  if (!currentPlayer.isHost) {
-    return <Waiting message="Discuss your choices together. The host will lock in the group decision." />;
-  }
+function FollowUp({ room, currentPlayerId }: { room: PublicRoomView; currentPlayerId: string }) {
+  const [optionId, setOptionId] = useState("");
+  const submitted = room.followUpSubmissionPlayerIds.includes(currentPlayerId);
   return (
     <section>
-      <p className="eyebrow">Group choice · suggested discussion time: {room.scenario.discussionSeconds} seconds</p>
-      <h2>What will your group bring?</h2>
-      <p className="lead">Talk it through, then the host captures the three items your group agrees on.</p>
-      <ChoiceBoard room={room} choices={choices} setChoices={setChoices} primaryPriorityId={primaryPriorityId} setPrimaryPriorityId={setPrimaryPriorityId} />
-      <button onClick={() => socket.emit("group-choice.submit", { choices })} disabled={choices.length !== room.scenario.groupSelectionCount}>Submit the group decision</button>
+      <p className="eyebrow">Continue · private choice</p>
+      <h2>Would you like to keep this connection going?</h2>
+      <p className="lead">Choose privately. An option is shown to the room only if at least two people choose the same one.</p>
+      {submitted ? <Waiting message="Your choice is private and saved. Waiting for the group." /> : (
+        <>
+          <div className="follow-up-grid">
+            {followUpOptions.map((option) => (
+              <button type="button" className={optionId === option.id ? "follow-up-card selected" : "follow-up-card"} key={option.id} onClick={() => setOptionId(option.id)}>
+                <strong>{option.label}</strong><span>{option.description}</span>
+              </button>
+            ))}
+          </div>
+          <button onClick={() => socket.emit("follow-up.submit", { followUpOptionId: optionId })} disabled={!optionId}>Save my private choice</button>
+        </>
+      )}
+      <SubmissionStatus submitted={room.followUpSubmissionPlayerIds.length} total={room.players.length} />
     </section>
   );
 }
 
-function PeerPrediction({ room, currentPlayerId }: { room: PublicRoomView; currentPlayerId: string }) {
-  const others = room.players.filter((player) => player.id !== currentPlayerId);
-  const [targetPlayerId, setTargetPlayerId] = useState(others[0]?.id ?? "");
-  const [predictedPriorityId, setPredictedPriorityId] = useState(room.scenario.priorities[0]?.id ?? "");
-  const submitted = room.predictionSubmissionPlayerIds.includes(currentPlayerId);
-  return (
-    <section className="prediction-panel">
-      <p className="eyebrow">Perspective check</p>
-      <h2>What do you think someone else valued most?</h2>
-      {submitted ? <Waiting message="Your prediction is saved. Waiting for the rest of the group." /> : <><label>Choose a person<select value={targetPlayerId} onChange={(event) => setTargetPlayerId(event.target.value)}>{others.map((player) => <option key={player.id} value={player.id}>{player.displayName}</option>)}</select></label><label>What did they value most?<select value={predictedPriorityId} onChange={(event) => setPredictedPriorityId(event.target.value)}>{room.scenario.priorities.map((priority) => <option key={priority.id} value={priority.id}>{priority.label}</option>)}</select></label><button onClick={() => socket.emit("peer-prediction.submit", { targetPlayerId, predictedPriorityId })}>Make prediction</button></>}
-    </section>
-  );
-}
-
-function RevealScreen({
-  room,
-  reveal,
-  currentPlayer,
-}: {
-  room: PublicRoomView;
-  reveal: Reveal;
-  currentPlayer: { isHost: boolean };
-}) {
-  const misread = reveal.biggestMisread;
+function RevealScreen({ reveal, currentPlayer }: { reveal: GroupReveal; currentPlayer: Player }) {
   return (
     <section className="reveal-screen">
-      <p className="eyebrow">MEANT → EXPRESSED → HEARD</p>
-      <h2>Your group reveal</h2>
+      <p className="eyebrow">Your group’s common ground</p>
+      <h2>You started with a prediction. You made a real connection.</h2>
       <div className="reveal-grid">
-        <article className="reveal-card"><span>Strongest common ground</span><strong>{reveal.commonGroundPriorityIds.map((id) => priorityLabel(room, id)).join(" + ")}</strong><p>These values appeared across the group’s private choices.</p></article>
-        <article className="reveal-card"><span>Hidden agreement</span><strong>{reveal.hiddenAgreementPriorityIds.length ? reveal.hiddenAgreementPriorityIds.map((id) => priorityLabel(room, id)).join(" + ") : "None this round"}</strong><p>Shared privately, but not expressed in the group decision.</p></article>
-        <article className="reveal-card misread"><span>Biggest misread</span>{misread ? <><strong>{playerName(room, misread.authorPlayerId)} thought {playerName(room, misread.targetPlayerId)} valued {priorityLabel(room, misread.predictedPriorityId)}.</strong><p>{playerName(room, misread.targetPlayerId)} actually chose {priorityLabel(room, misread.actualPriorityId)} as their top priority.</p></> : <><strong>Your group read one another accurately.</strong><p>Every prediction matched the target’s stated top priority.</p></>}</article>
+        <article className="reveal-card"><span>Predicted common ground</span><strong>{reveal.initialTheme.label}</strong><p>{reveal.initialTheme.description}</p></article>
+        <article className="reveal-card highlight"><span>Actual common ground</span><strong>{reveal.actualTheme.label}</strong><p>{reveal.actualTheme.description}</p></article>
+        <article className="reveal-card"><span>Mutual next step</span><strong>{reveal.mutualFollowUps.length ? reveal.mutualFollowUps.map((match) => match.label).join(" + ") : "No shared plan yet"}</strong><p>{reveal.mutualFollowUps.length ? "At least two people chose this privately. You can decide together what happens next." : "That is okay. A good conversation does not need to become a commitment."}</p></article>
       </div>
-      <p className="reveal-note">This is one shared moment, not a personality test.</p>
-      {currentPlayer.isHost ? <button onClick={() => socket.emit("game.restart")}>Play again</button> : null}
+      <p className="reveal-note">This is one shared moment, not a personality test. Individual preferences and choices remain private.</p>
+      {currentPlayer.isHost ? <button onClick={() => socket.emit("activity.restart")}>Start another activity</button> : null}
     </section>
   );
+}
+
+function SubmissionStatus({ submitted, total }: { submitted: number; total: number }) {
+  return <p className="submission-status"><span />{submitted} of {total} private responses saved</p>;
 }
 
 function Waiting({ message }: { message: string }) {
   return <div className="waiting-card"><span className="pulse" />{message}</div>;
+}
+
+function goalLabel(goal: EventGoal): string {
+  return {
+    comfort: "Meet comfortably",
+    discovery: "Discover perspectives",
+    continuation: "Form a next step",
+  }[goal];
 }

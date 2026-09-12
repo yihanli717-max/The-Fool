@@ -8,29 +8,45 @@ import { z } from "zod";
 
 import {
   applyAction,
+  CONNECTION_STYLES,
   createRoom,
   DomainError,
+  EVENT_GOALS,
+  EVENT_INTENTS,
+  GROUPING_MODES,
+  INTERACTION_STYLES,
   projectPublicRoom,
-  strandedIsland,
-  type ItemChoice,
   type RoomAction,
   type RoomState,
 } from "@common-ground/shared";
 
 const port = Number(process.env.PORT ?? 3001);
-const clientOrigin = process.env.CLIENT_ORIGIN ?? "http://localhost:5173";
+const configuredOrigins = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const tailscaleOrigin = /^https?:\/\/100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])\.\d{1,3}\.\d{1,3}:5173$/;
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  return !origin || configuredOrigins.includes(origin) || tailscaleOrigin.test(origin);
+}
+
+const corsOrigin = (
+  origin: string | undefined,
+  callback: (error: Error | null, allowed?: boolean) => void,
+) => {
+  const allowed = isAllowedOrigin(origin);
+  callback(allowed ? null : new Error("Origin is not allowed"), allowed);
+};
 
 const app = express();
-app.use(cors({ origin: clientOrigin }));
+app.use(cors({ origin: corsOrigin }));
 app.get("/health", (_request, response) => {
   response.json({ status: "ok" });
 });
 
 const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: { origin: clientOrigin },
-});
-
+const io = new Server(httpServer, { cors: { origin: corsOrigin } });
 const rooms = new Map<string, RoomState>();
 
 const displayNameSchema = z
@@ -39,16 +55,19 @@ const displayNameSchema = z
   .min(1, "Display name is required")
   .max(24, "Display name must be 24 characters or fewer");
 const codeSchema = z.string().trim().toUpperCase().regex(/^[A-Z0-9]{4,8}$/);
-const itemChoiceSchema = z.object({
-  itemId: z.string(),
-  priorityId: z.string(),
+const activitySchema = z.object({
+  title: z.string().trim().min(1, "Activity name is required").max(60),
+  eventGoal: z.enum(EVENT_GOALS),
+  groupingMode: z.enum(GROUPING_MODES),
 });
-const choicesSchema = z.array(itemChoiceSchema);
+const preferenceCardSchema = z.object({
+  interestIds: z.array(z.string()).max(3),
+  interactionStyle: z.enum(INTERACTION_STYLES).optional(),
+  connectionStyle: z.enum(CONNECTION_STYLES).optional(),
+  eventIntent: z.enum(EVENT_INTENTS).optional(),
+});
 
-type Session = {
-  roomCode: string;
-  playerId: string;
-};
+type Session = { roomCode: string; playerId: string };
 
 function generateRoomCode(): string {
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -72,24 +91,17 @@ function sendError(socket: { emit: (event: string, message: string) => void }, e
 
 function currentSession(socket: { data: { session?: Session } }): Session {
   const session = socket.data.session;
-  if (!session) {
-    throw new DomainError("Join a room before taking part in the game");
-  }
+  if (!session) throw new DomainError("Join an activity before taking part");
   return session;
 }
 
-function submitAction(
-  socket: Parameters<typeof io.on>[1] extends (socket: infer SocketType) => unknown
-    ? SocketType
-    : never,
-  action: RoomAction,
-): void {
+type AppSocket = Parameters<Parameters<typeof io.on>[1]>[0];
+
+function submitAction(socket: AppSocket, action: RoomAction): void {
   try {
     const session = currentSession(socket);
     const room = rooms.get(session.roomCode);
-    if (!room) {
-      throw new DomainError("This room no longer exists");
-    }
+    if (!room) throw new DomainError("This activity room no longer exists");
     const nextRoom = applyAction(room, action);
     rooms.set(nextRoom.code, nextRoom);
     emitRoomState(nextRoom);
@@ -100,9 +112,11 @@ function submitAction(
 
 io.on("connection", (socket) => {
   socket.on("room.create", (payload: unknown) => {
-    const parsed = z.object({ displayName: displayNameSchema }).safeParse(payload);
+    const parsed = z
+      .object({ displayName: displayNameSchema, activity: activitySchema })
+      .safeParse(payload);
     if (!parsed.success) {
-      sendError(socket, parsed.error.issues[0]?.message ?? "Invalid room request");
+      sendError(socket, parsed.error.issues[0]?.message ?? "Invalid activity request");
       return;
     }
 
@@ -111,12 +125,16 @@ io.on("connection", (socket) => {
     const room = createRoom(
       { id: randomUUID(), code },
       { id: playerId, displayName: parsed.data.displayName, connected: true },
-      strandedIsland,
+      parsed.data.activity,
     );
     rooms.set(code, room);
     socket.data.session = { roomCode: code, playerId } satisfies Session;
     socket.join(code);
-    socket.emit("room.joined", { roomCode: code, playerId, state: projectPublicRoom(room) });
+    socket.emit("room.joined", {
+      roomCode: code,
+      playerId,
+      state: projectPublicRoom(room),
+    });
     emitRoomState(room);
   });
 
@@ -128,7 +146,6 @@ io.on("connection", (socket) => {
       sendError(socket, parsed.error.issues[0]?.message ?? "Invalid join request");
       return;
     }
-
     const room = rooms.get(parsed.data.roomCode);
     if (!room) {
       sendError(socket, "Room not found");
@@ -193,79 +210,96 @@ io.on("connection", (socket) => {
     emitRoomState(nextRoom);
   });
 
-  socket.on("game.start", () => {
+  socket.on("activity.start", () => {
     try {
-      const { playerId } = currentSession(socket);
-      submitAction(socket, { type: "game.start", actorPlayerId: playerId });
+      submitAction(socket, { type: "activity.start", actorPlayerId: currentSession(socket).playerId });
     } catch (error) {
       sendError(socket, error);
     }
   });
 
-  socket.on("game.restart", () => {
-    try {
-      const { playerId } = currentSession(socket);
-      submitAction(socket, { type: "game.restart", actorPlayerId: playerId });
-    } catch (error) {
-      sendError(socket, error);
-    }
-  });
-
-  socket.on("private-choice.submit", (payload: unknown) => {
-    const parsed = z
-      .object({ choices: choicesSchema, primaryPriorityId: z.string() })
-      .safeParse(payload);
+  socket.on("preferences.submit", (payload: unknown) => {
+    const parsed = z.object({ card: preferenceCardSchema }).safeParse(payload);
     if (!parsed.success) {
-      sendError(socket, "Invalid private-choice submission");
+      sendError(socket, "Invalid preference card");
       return;
     }
     try {
-      const { playerId } = currentSession(socket);
+      const card = {
+        interestIds: parsed.data.card.interestIds,
+        ...(parsed.data.card.interactionStyle
+          ? { interactionStyle: parsed.data.card.interactionStyle }
+          : {}),
+        ...(parsed.data.card.connectionStyle
+          ? { connectionStyle: parsed.data.card.connectionStyle }
+          : {}),
+        ...(parsed.data.card.eventIntent
+          ? { eventIntent: parsed.data.card.eventIntent }
+          : {}),
+      };
       submitAction(socket, {
-        type: "private-choice.submit",
-        actorPlayerId: playerId,
-        choices: parsed.data.choices as ItemChoice[],
-        primaryPriorityId: parsed.data.primaryPriorityId,
+        type: "preferences.submit",
+        actorPlayerId: currentSession(socket).playerId,
+        card,
       });
     } catch (error) {
       sendError(socket, error);
     }
   });
 
-  socket.on("group-choice.submit", (payload: unknown) => {
-    const parsed = z.object({ choices: choicesSchema }).safeParse(payload);
+  socket.on("conversation.begin", () => {
+    try {
+      submitAction(socket, { type: "conversation.begin", actorPlayerId: currentSession(socket).playerId });
+    } catch (error) {
+      sendError(socket, error);
+    }
+  });
+
+  socket.on("reflection.open", () => {
+    try {
+      submitAction(socket, { type: "reflection.open", actorPlayerId: currentSession(socket).playerId });
+    } catch (error) {
+      sendError(socket, error);
+    }
+  });
+
+  socket.on("reflection.submit", (payload: unknown) => {
+    const parsed = z.object({ themeId: z.string() }).safeParse(payload);
     if (!parsed.success) {
-      sendError(socket, "Invalid group-choice submission");
+      sendError(socket, "Invalid reflection response");
       return;
     }
     try {
-      const { playerId } = currentSession(socket);
       submitAction(socket, {
-        type: "group-choice.submit",
-        actorPlayerId: playerId,
-        choices: parsed.data.choices as ItemChoice[],
+        type: "reflection.submit",
+        actorPlayerId: currentSession(socket).playerId,
+        themeId: parsed.data.themeId,
       });
     } catch (error) {
       sendError(socket, error);
     }
   });
 
-  socket.on("peer-prediction.submit", (payload: unknown) => {
-    const parsed = z
-      .object({ targetPlayerId: z.string().uuid(), predictedPriorityId: z.string() })
-      .safeParse(payload);
+  socket.on("follow-up.submit", (payload: unknown) => {
+    const parsed = z.object({ followUpOptionId: z.string() }).safeParse(payload);
     if (!parsed.success) {
-      sendError(socket, "Invalid peer-prediction submission");
+      sendError(socket, "Invalid follow-up response");
       return;
     }
     try {
-      const { playerId } = currentSession(socket);
       submitAction(socket, {
-        type: "peer-prediction.submit",
-        actorPlayerId: playerId,
-        targetPlayerId: parsed.data.targetPlayerId,
-        predictedPriorityId: parsed.data.predictedPriorityId,
+        type: "follow-up.submit",
+        actorPlayerId: currentSession(socket).playerId,
+        followUpOptionId: parsed.data.followUpOptionId,
       });
+    } catch (error) {
+      sendError(socket, error);
+    }
+  });
+
+  socket.on("activity.restart", () => {
+    try {
+      submitAction(socket, { type: "activity.restart", actorPlayerId: currentSession(socket).playerId });
     } catch (error) {
       sendError(socket, error);
     }
@@ -273,13 +307,9 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     const session = socket.data.session as Session | undefined;
-    if (!session) {
-      return;
-    }
+    if (!session) return;
     const room = rooms.get(session.roomCode);
-    if (!room || !room.players.some((player) => player.id === session.playerId)) {
-      return;
-    }
+    if (!room || !room.players.some((player) => player.id === session.playerId)) return;
     const nextRoom = applyAction(room, {
       type: "player.connection.set",
       actorPlayerId: session.playerId,
