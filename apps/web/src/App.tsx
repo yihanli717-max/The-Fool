@@ -610,13 +610,13 @@ function Predictions({
     (player) => player.id !== currentPlayer.id && player.connected,
   );
   const cardIds = room.currentRound?.cardIds ?? [];
-  const [targetId, setTargetId] = useState(targets[0]?.id ?? "");
+  const [targetId, setTargetId] = useState("");
   const [cardId, setCardId] = useState(cardIds[0] ?? "");
   const [predictedScore, setPredictedScore] = useState<TarotScore | null>(null);
 
   useEffect(() => {
-    if (!targets.some((target) => target.id === targetId)) {
-      setTargetId(targets[0]?.id ?? "");
+    if (targetId && !targets.some((target) => target.id === targetId)) {
+      setTargetId("");
     }
   }, [targetId, targets]);
   useEffect(() => {
@@ -632,6 +632,14 @@ function Predictions({
   const canSubmit =
     Boolean(selectedTarget && selectedCard && predictedScore) &&
     result?.status !== "continuation-loading";
+  const worldState =
+    result?.status === "conversation-ready"
+      ? "conversation-ready"
+      : result?.status === "matched"
+        ? "matched"
+        : selectedTarget
+          ? "target-selected"
+          : "awaiting-target";
 
   return (
     <section className="prediction-stage">
@@ -642,88 +650,153 @@ function Predictions({
         </div>
         <span>Only you see your result</span>
       </div>
-      <div className="character-map">
-        {targets.map((player) => (
-          <PlayerAvatar
-            player={player}
-            selected={player.id === targetId}
+      <div className={`pixel-world ${worldState}`}>
+        <div className="world-sky" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+        <p className="world-instruction">
+          {selectedTarget
+            ? `You walked over to ${selectedTarget.displayName}.`
+            : "Choose a character to begin a private perspective check."}
+        </p>
+        {targets.slice(0, 9).map((player, index) => (
+          <button
+            type="button"
+            className={
+              player.id === targetId
+                ? `world-character world-slot-${index} selected`
+                : `world-character world-slot-${index}`
+            }
             onClick={() => {
               setTargetId(player.id);
               setPredictedScore(null);
             }}
+            aria-pressed={player.id === targetId}
             key={player.id}
-          />
-        ))}
-      </div>
-      <h3>Choose one explored Tarot domain</h3>
-      <div className="mini-card-grid">
-        {cardIds.map((candidateId) => {
-          const card = tarotCard(candidateId);
-          if (!card) return null;
-          return (
-            <button
-              type="button"
-              key={card.id}
-              className={card.id === cardId ? "mini-card selected" : "mini-card"}
-              onClick={() => {
-                setCardId(card.id);
-                setPredictedScore(null);
-              }}
-            >
-              <img src={assetUrl("tarot", card.imageFile)} alt="" />
-              <span>
-                <strong>{card.name}</strong>
-                <small>{card.generalMeaning}</small>
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      {selectedTarget && selectedCard ? (
-        <article className="prediction-dialog">
-          <div>
-            <p className="eyebrow">
-              {selectedTarget.displayName} · {selectedCard.name}
-            </p>
-            <h3>
-              Which approach feels closest to how {selectedTarget.displayName} might
-              respond?
-            </h3>
-            <p>{selectedCard.scoreAxis.label}</p>
-          </div>
-          <div className="score-grid">
-            {scoreChoices.map((score) => (
-              <button
-                type="button"
-                key={score}
-                className={
-                  predictedScore === score ? "score-choice selected" : "score-choice"
-                }
-                onClick={() => setPredictedScore(score)}
-              >
-                {selectedCard.scoreAxis.scores[score]}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            disabled={!canSubmit}
-            onClick={() => {
-              if (!predictedScore) return;
-              socket.emit("prediction.submit", {
-                targetPlayerId: selectedTarget.id,
-                cardId: selectedCard.id,
-                predictedScore,
-              });
-            }}
           >
-            Explore this perspective
+            {player.id === targetId ? (
+              <span className="speech-indicator" aria-hidden="true">
+                {result ? "…" : "?"}
+              </span>
+            ) : null}
+            <img
+              src={assetUrl("characters", characterFile(player.characterId))}
+              alt=""
+            />
+            <span className="name-plaque">{player.displayName}</span>
           </button>
-          <PredictionResult result={result} target={selectedTarget} />
-        </article>
-      ) : (
-        <p className="waiting">Waiting for another connected player.</p>
-      )}
+        ))}
+        <div className="viewer-character" aria-label={`You are ${currentPlayer.displayName}`}>
+          <img
+            src={assetUrl(
+              "characters",
+              characterFile(currentPlayer.characterId),
+            )}
+            alt=""
+          />
+          <span>You · {currentPlayer.displayName}</span>
+        </div>
+      </div>
+      <article className="prediction-dialog" aria-live="polite">
+        {selectedTarget && selectedCard ? (
+          <>
+            <div className="dialog-speaker">
+              <img
+                src={assetUrl(
+                  "characters",
+                  characterFile(selectedTarget.characterId),
+                )}
+                alt=""
+              />
+              <div>
+                <p className="eyebrow">Talking with {selectedTarget.displayName}</p>
+                <h3>Choose a Tarot lens for this conversation.</h3>
+              </div>
+            </div>
+            <div className="dialog-domain-tabs" aria-label="Tarot domains">
+              {cardIds.map((candidateId) => {
+                const card = tarotCard(candidateId);
+                if (!card) return null;
+                return (
+                  <button
+                    type="button"
+                    key={card.id}
+                    className={
+                      card.id === cardId ? "domain-tab selected" : "domain-tab"
+                    }
+                    onClick={() => {
+                      setCardId(card.id);
+                      setPredictedScore(null);
+                    }}
+                  >
+                    <img src={assetUrl("tarot", card.imageFile)} alt="" />
+                    <span>{card.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {result ? (
+              <PredictionResult result={result} target={selectedTarget} />
+            ) : (
+              <>
+                <div className="domain-message">
+                  <p className="eyebrow">{selectedCard.name}</p>
+                  <strong>{selectedCard.generalMeaning}</strong>
+                  <span>
+                    Which approach feels closest to how {selectedTarget.displayName}
+                    {" "}might respond?
+                  </span>
+                </div>
+                <div className="score-grid">
+                  {scoreChoices.map((score) => (
+                    <button
+                      type="button"
+                      key={score}
+                      className={
+                        predictedScore === score
+                          ? "score-choice selected"
+                          : "score-choice"
+                      }
+                      onClick={() => setPredictedScore(score)}
+                    >
+                      <strong>{selectedCard.name}</strong>
+                      <small>{selectedCard.generalMeaning}</small>
+                      <span>{selectedCard.scoreAxis.scores[score]}</span>
+                    </button>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  disabled={!canSubmit}
+                  onClick={() => {
+                    if (!predictedScore) return;
+                    socket.emit("prediction.submit", {
+                      targetPlayerId: selectedTarget.id,
+                      cardId: selectedCard.id,
+                      predictedScore,
+                    });
+                  }}
+                >
+                  Explore this perspective
+                </button>
+              </>
+            )}
+          </>
+        ) : (
+          <div className="dialog-empty">
+            <span className="dialog-caret">…</span>
+            <div>
+              <p className="eyebrow">Future communication</p>
+              <h3>Click one of the characters in the scene.</h3>
+              <p>
+                Their nickname and Tarot conversation options will appear here.
+              </p>
+            </div>
+          </div>
+        )}
+      </article>
     </section>
   );
 }
@@ -735,10 +808,17 @@ function PredictionResult({
   result: ViewerPredictionResult | undefined;
   target: TarotPlayer;
 }) {
+  const [selectedDirectionId, setSelectedDirectionId] =
+    useState<TarotOptionId | null>(null);
+
+  useEffect(() => {
+    setSelectedDirectionId(null);
+  }, [result?.predictionId]);
+
   if (!result) return null;
   if (result.status === "continuation-loading") {
     return (
-      <div className="result-card">
+      <div className="result-card loading-result">
         <span className="pulse" />
         Finding three new ways to keep the conversation going…
       </div>
@@ -752,22 +832,54 @@ function PredictionResult({
         <p>
           Ask {target.displayName} what experience made that approach feel natural.
         </p>
+        <div className="conversation-link">
+          <span aria-hidden="true">You</span>
+          <i aria-hidden="true" />
+          <span aria-hidden="true">{target.displayName}</span>
+        </div>
       </div>
     );
   }
+  const selectedDirection = result.continuation.options.find(
+    (option) => option.id === selectedDirectionId,
+  );
   return (
     <div className="result-card continuation">
       <p className="eyebrow">Keep discovering</p>
       <strong>{result.continuation.opening}</strong>
       <div className="continuation-grid">
         {result.continuation.options.map((option) => (
-          <article key={option.id}>
+          <button
+            type="button"
+            className={
+              option.id === selectedDirectionId
+                ? "continuation-option selected"
+                : "continuation-option"
+            }
+            onClick={() => setSelectedDirectionId(option.id)}
+            key={option.id}
+          >
             <span>{option.mode.replace("-", " ")}</span>
             <h4>{option.title}</h4>
             <p>{option.prompt}</p>
-          </article>
+          </button>
         ))}
       </div>
+      {selectedDirection ? (
+        <div className="conversation-launch">
+          <span className="speech-tail" aria-hidden="true" />
+          <p className="eyebrow">Start this conversation with {target.displayName}</p>
+          <strong>{selectedDirection.prompt}</strong>
+          <p>
+            Take this prompt into the real conversation—there is no answer to
+            submit and nothing else is scored.
+          </p>
+        </div>
+      ) : (
+        <p className="direction-hint">
+          Pick one path to turn it into a shared conversation prompt.
+        </p>
+      )}
     </div>
   );
 }

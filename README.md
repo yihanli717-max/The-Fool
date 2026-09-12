@@ -126,14 +126,21 @@ The prediction stage shows each participant the other participants' pixel
 characters and nicknames. The characters occupy stable positions on the
 screen, with unused positions removed for smaller rooms.
 
+This stage is presented as a small pixel-world conversation scene rather than
+a list or scoreboard. The interface reserves nine fixed character positions
+for the other possible participants, keeps the viewer's own character at the
+bottom of the scene, and visually connects the viewer to the selected person.
+
 For each target participant:
 
 1. the predictor clicks the target's character;
-2. a bottom dialog presents three Tarot-domain options using the card title and
-   general meaning;
-3. the predictor chooses the option that they believe best matches how the
+2. a white conversation dialog opens at the bottom of the scene;
+3. the predictor chooses a previously explored Tarot lens;
+4. the dialog presents exactly three positions using the Tarot title, general
+   meaning, and the domain's three non-judgmental approaches;
+5. the predictor chooses the position that they believe best matches how the
    target approaches the relevant kind of situation;
-4. the server records the prediction privately for that predictor-target-card
+6. the server records the prediction privately for that predictor-target-card
    pair.
 
 Predictions are grouped by Tarot. If the same Tarot was explored in multiple
@@ -173,6 +180,13 @@ They should not repeat the original event, expose the hidden comparison, or
 turn the conversation into an assessment. The goal is to help the pair keep
 talking about the domain from a new angle, so the interaction feels like
 discovery rather than correction.
+
+The three directions remain inside the selected character's bottom dialog.
+When the predictor selects one, the interface expands it into a shared
+“Start this conversation with …” prompt while both pixel characters remain
+part of the scene. This visual handoff is the final product action: the prompt
+leads back to human conversation, and there is no additional answer to submit
+or score.
 
 Example for a mismatch in **The Fool** domain:
 
@@ -430,6 +444,8 @@ The feature branch implements the end-to-end Shared Mind MVP:
 - all-player reveals, conversation break, and host revision controls;
 - private predictions using the latest ground truth for each Tarot domain;
 - structured continuation generation with a privacy-safe fallback;
+- a nine-position pixel conversation scene with a bottom dialog and selectable
+  future-communication paths;
 - deterministic harness, domain tests, type checking, and production build.
 
 ## Team

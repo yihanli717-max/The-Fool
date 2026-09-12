@@ -40,8 +40,14 @@ the future, or assign fixed personality types.
 - Tarot/event split layout with private answer submission.
 - Group choice reveal only after every active player answers.
 - Ten-minute conversation break and host revision choice.
-- Character-first prediction interface with Tarot-domain selection.
+- Nine predefined world positions for the other participants, with unused
+  positions removed for smaller rooms.
+- Character-first prediction interface with a pixel-world scene, selected
+  target highlight, viewer-to-target path, and bottom white dialog.
+- Exactly three prediction positions inside the selected Tarot lens.
 - Private matched and conversation-continuation result branches.
+- Three selectable continuation routes that expand into a shared “Start this
+  conversation with …” prompt in the same character scene.
 - Responsive layouts for laptops and phones.
 
 ## Realtime contract
@@ -92,6 +98,9 @@ validated local fallback content.
 - A revision round replaces latest ground truth per player and Tarot domain.
 - Predictions cannot target oneself.
 - Only the predictor receives their matched or continuation result.
+- Stage 2 is a spatial pixel-character visualization, not a participant list.
+- Continued communication stays attached to the selected character and ends in
+  a visible human-to-human conversation prompt.
 - A mismatch never appears in user-facing copy as wrong, inaccurate, scored,
   or not knowing the target.
 - No API key or demo-only event fixture is committed.
