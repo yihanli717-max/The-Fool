@@ -7,5 +7,4 @@ coverage/
 .DS_Store
 *.log
 
-# Demo-only event fixture; never commit this file.
-**/tarot_demo_events.json
+
