@@ -43,7 +43,8 @@ the future, or assign fixed personality types.
 - Nine predefined world positions for the other participants, with unused
   positions removed for smaller rooms.
 - Character-first prediction interface with a pixel-world scene, selected
-  target highlight, viewer-to-target path, and bottom white dialog.
+  target highlight, viewer walk-to-target animation, and bottom white dialog
+  that opens after arrival.
 - Exactly three prediction positions inside the selected Tarot lens.
 - Private matched and conversation-continuation result branches.
 - Three selectable continuation routes that expand into a shared “Start this

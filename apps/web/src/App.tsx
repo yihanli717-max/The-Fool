@@ -611,19 +611,42 @@ function Predictions({
   );
   const cardIds = room.currentRound?.cardIds ?? [];
   const [targetId, setTargetId] = useState("");
+  const [movingTargetId, setMovingTargetId] = useState("");
   const [cardId, setCardId] = useState(cardIds[0] ?? "");
   const [predictedScore, setPredictedScore] = useState<TarotScore | null>(null);
+  const targetIds = targets.map((target) => target.id).join("|");
 
   useEffect(() => {
     if (targetId && !targets.some((target) => target.id === targetId)) {
       setTargetId("");
     }
-  }, [targetId, targets]);
+    if (
+      movingTargetId &&
+      !targets.some((target) => target.id === movingTargetId)
+    ) {
+      setMovingTargetId("");
+    }
+  }, [movingTargetId, targetId, targetIds]);
   useEffect(() => {
     if (!cardIds.includes(cardId)) setCardId(cardIds[0] ?? "");
   }, [cardId, cardIds]);
+  useEffect(() => {
+    if (!movingTargetId) return;
+    const arrivalTimer = window.setTimeout(() => {
+      setTargetId(movingTargetId);
+      setMovingTargetId("");
+    }, 950);
+    return () => window.clearTimeout(arrivalTimer);
+  }, [movingTargetId]);
 
   const selectedTarget = targets.find((target) => target.id === targetId);
+  const movingTarget = targets.find(
+    (target) => target.id === movingTargetId,
+  );
+  const activeTargetId = movingTargetId || targetId;
+  const activeTargetIndex = targets.findIndex(
+    (target) => target.id === activeTargetId,
+  );
   const selectedCard = tarotCard(cardId);
   const result =
     selectedTarget && selectedCard
@@ -632,8 +655,9 @@ function Predictions({
   const canSubmit =
     Boolean(selectedTarget && selectedCard && predictedScore) &&
     result?.status !== "continuation-loading";
-  const worldState =
-    result?.status === "conversation-ready"
+  const worldState = movingTargetId
+    ? "walking"
+    : result?.status === "conversation-ready"
       ? "conversation-ready"
       : result?.status === "matched"
         ? "matched"
@@ -657,7 +681,9 @@ function Predictions({
           <span />
         </div>
         <p className="world-instruction">
-          {selectedTarget
+          {movingTarget
+            ? `Walking over to ${movingTarget.displayName}…`
+            : selectedTarget
             ? `You walked over to ${selectedTarget.displayName}.`
             : "Choose a character to begin a private perspective check."}
         </p>
@@ -665,20 +691,22 @@ function Predictions({
           <button
             type="button"
             className={
-              player.id === targetId
+              player.id === activeTargetId
                 ? `world-character world-slot-${index} selected`
                 : `world-character world-slot-${index}`
             }
             onClick={() => {
-              setTargetId(player.id);
+              if (player.id === targetId && !movingTargetId) return;
+              setTargetId("");
+              setMovingTargetId(player.id);
               setPredictedScore(null);
             }}
-            aria-pressed={player.id === targetId}
+            aria-pressed={player.id === activeTargetId}
             key={player.id}
           >
-            {player.id === targetId ? (
+            {player.id === activeTargetId ? (
               <span className="speech-indicator" aria-hidden="true">
-                {result ? "…" : "?"}
+                {movingTargetId || result ? "…" : "?"}
               </span>
             ) : null}
             <img
@@ -688,7 +716,22 @@ function Predictions({
             <span className="name-plaque">{player.displayName}</span>
           </button>
         ))}
-        <div className="viewer-character" aria-label={`You are ${currentPlayer.displayName}`}>
+        <div
+          className={[
+            "viewer-character",
+            movingTargetId ? "walking" : activeTargetId ? "arrived" : "",
+            activeTargetIndex >= 0
+              ? `viewer-to-slot-${activeTargetIndex}`
+              : "",
+          ]
+            .filter(Boolean)
+            .join(" ")}
+          aria-label={
+            movingTarget
+              ? `You are walking to ${movingTarget.displayName}`
+              : `You are ${currentPlayer.displayName}`
+          }
+        >
           <img
             src={assetUrl(
               "characters",
@@ -788,10 +831,18 @@ function Predictions({
           <div className="dialog-empty">
             <span className="dialog-caret">…</span>
             <div>
-              <p className="eyebrow">Future communication</p>
-              <h3>Click one of the characters in the scene.</h3>
+              <p className="eyebrow">
+                {movingTarget ? "Approaching another perspective" : "Future communication"}
+              </p>
+              <h3>
+                {movingTarget
+                  ? `Walking over to ${movingTarget.displayName}…`
+                  : "Click one of the characters in the scene."}
+              </h3>
               <p>
-                Their nickname and Tarot conversation options will appear here.
+                {movingTarget
+                  ? "The conversation will open when your character arrives."
+                  : "Their nickname and Tarot conversation options will appear here."}
               </p>
             </div>
           </div>

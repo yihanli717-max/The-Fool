@@ -129,7 +129,8 @@ screen, with unused positions removed for smaller rooms.
 This stage is presented as a small pixel-world conversation scene rather than
 a list or scoreboard. The interface reserves nine fixed character positions
 for the other possible participants, keeps the viewer's own character at the
-bottom of the scene, and visually connects the viewer to the selected person.
+bottom of the scene, and animates that character walking toward the selected
+person. The conversation dialog opens only after the character arrives.
 
 For each target participant:
 

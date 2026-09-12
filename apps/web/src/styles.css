@@ -360,13 +360,37 @@ button.player-avatar { cursor: pointer; }
 .world-slot-8 { left: 76%; top: 82%; }
 .viewer-character {
   position: absolute;
-  z-index: 4;
+  z-index: 7;
   left: 50%;
-  bottom: 1rem;
+  top: 78%;
   display: grid;
   justify-items: center;
   transform: translateX(-50%);
+  transition:
+    left .9s cubic-bezier(.42, 0, .24, 1),
+    top .9s cubic-bezier(.42, 0, .24, 1);
 }
+.viewer-character.walking img {
+  animation: walking-bob .22s steps(2, end) infinite alternate;
+}
+.viewer-character.arrived img {
+  filter:
+    drop-shadow(0 8px 5px rgba(0, 0, 0, .36))
+    drop-shadow(0 0 8px rgba(244, 210, 143, .5));
+}
+@keyframes walking-bob {
+  from { transform: translateY(0) rotate(-1.5deg); }
+  to { transform: translateY(-5px) rotate(1.5deg); }
+}
+.viewer-to-slot-0 { left: 18%; top: 43%; }
+.viewer-to-slot-1 { left: 39%; top: 36%; }
+.viewer-to-slot-2 { left: 63%; top: 34%; }
+.viewer-to-slot-3 { left: 67%; top: 43%; }
+.viewer-to-slot-4 { left: 25%; top: 73%; }
+.viewer-to-slot-5 { left: 45%; top: 67%; }
+.viewer-to-slot-6 { left: 55%; top: 67%; }
+.viewer-to-slot-7 { left: 75%; top: 73%; }
+.viewer-to-slot-8 { left: 64%; top: 79%; }
 .prediction-dialog {
   position: sticky;
   z-index: 20;
@@ -524,7 +548,13 @@ button.player-avatar { cursor: pointer; }
     transform: none;
   }
   .world-character:hover:not(:disabled) { transform: translateY(-3px); }
-  .viewer-character { bottom: .8rem; }
+  .viewer-character,
+  .viewer-character[class*="viewer-to-slot-"] {
+    left: 50%;
+    top: auto;
+    bottom: .8rem;
+  }
+  .viewer-character.walking { bottom: 3.3rem; }
   .dialog-domain-tabs { grid-template-columns: repeat(2, 1fr); }
   .score-grid, .continuation-grid { grid-template-columns: 1fr; }
 }
